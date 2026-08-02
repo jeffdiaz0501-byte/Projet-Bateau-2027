@@ -982,9 +982,29 @@ const PILL = {
 };
 
 /* ============================================================
-   BACKEND — Apps Script, avec repli démo hors GAS
+   ►►► À CONFIGURER ◄◄◄
+
+   URL du déploiement Apps Script (termine par /exec).
+   Elle change à CHAQUE nouveau déploiement — pense à la reporter ici.
+
+   Le déploiement doit être réglé sur :
+     Exécuter en tant que : Moi
+     Qui a accès          : Tout le monde
+   Sans "Tout le monde", le navigateur bloque l'appel depuis GitHub Pages.
+   ============================================================ */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby_UoLBWCnu25PO5vcBpqLaOutEw7i4Boh8De15xgRMjhE9lREqTHxtWHNNXBMXTVo-8g/exec';
+
+/* Doit être identique à API_TOKEN dans Code.gs. */
+const API_TOKEN = 'bateau-a-changer-2026';
+
+/* ============================================================
+   BACKEND — trois modes, détectés automatiquement :
+     1. page servie par Apps Script  -> google.script.run
+     2. GAS_URL renseignée           -> fetch (GitHub Pages)
+     3. ni l'un ni l'autre           -> données de démonstration
    ============================================================ */
 const hasGAS = typeof google !== 'undefined' && google.script && google.script.run;
+const hasURL = /^https:\/\/script\.google\.com\/.+\/exec$/.test(GAS_URL);
 const DEMO = {
   Config: [{
     id: 'c1',
@@ -1157,11 +1177,47 @@ function demoCall(fn, a) {
     res(null);
   }, 110));
 }
+
+/* Appel HTTP vers le déploiement Apps Script.
+   Content-Type text/plain volontaire : évite la requête preflight OPTIONS,
+   qu'Apps Script ne sait pas traiter. */
+async function httpCall(fn, args) {
+  let res;
+  try {
+    res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify({
+        token: API_TOKEN,
+        fn,
+        args
+      }),
+      redirect: 'follow'
+    });
+  } catch (e) {
+    throw new Error("Serveur injoignable. Vérifiez que le déploiement est ouvert à « Tout le monde ».");
+  }
+  if (!res.ok) throw new Error('Erreur serveur ' + res.status + '.');
+  const texte = await res.text();
+  let json;
+  try {
+    json = JSON.parse(texte);
+  } catch (e) {
+    throw new Error("Réponse inattendue du serveur. L'URL de déploiement est peut-être périmée.");
+  }
+  if (!json.ok) throw new Error(json.error || 'Erreur inconnue.');
+  return json.data;
+}
 function server(fn, ...a) {
-  if (!hasGAS) return demoCall(fn, a);
-  return new Promise((resolve, reject) => {
-    google.script.run.withSuccessHandler(resolve).withFailureHandler(e => reject(new Error(e.message || String(e))))[fn](...a);
-  });
+  if (hasGAS) {
+    return new Promise((resolve, reject) => {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(e => reject(new Error(e.message || String(e))))[fn](...a);
+    });
+  }
+  if (hasURL) return httpCall(fn, a);
+  return demoCall(fn, a);
 }
 
 /* ============================================================
@@ -1844,7 +1900,7 @@ function App() {
     active: active,
     onSelect: setActive,
     counts: counts
-  }), !hasGAS && /*#__PURE__*/React.createElement("div", {
+  }), !hasGAS && !hasURL && /*#__PURE__*/React.createElement("div", {
     className: "banner"
   }, /*#__PURE__*/React.createElement("div", {
     className: "banner-in"
