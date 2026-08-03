@@ -55,12 +55,30 @@ const react = read(path.join(ROOT, 'node_modules/react/umd/react.production.min.
 const reactDom = read(path.join(ROOT, 'node_modules/react-dom/umd/react-dom.production.min.js'));
 console.log('✓ React + ReactDOM inlinés (' + Math.round((react.length + reactDom.length) / 1024) + ' Ko)');
 
+// 3 bis. Images du plan, embarquées en base64 (masques en niveaux de gris)
+const IMAGES = {
+  '__PLAN_COMPLET__': 'src/assets/plan-complet.png',
+  '__PLAN_COQUE__':   'src/assets/plan-coque.png',
+};
+var poidsImages = 0;
+var dataUrls = {};
+Object.keys(IMAGES).forEach(function (cle) {
+  const b64 = fs.readFileSync(path.join(ROOT, IMAGES[cle])).toString('base64');
+  dataUrls[cle] = 'data:image/png;base64,' + b64;
+  poidsImages += b64.length;
+});
+console.log('✓ ' + Object.keys(IMAGES).length + ' images embarquées (' + Math.round(poidsImages / 1024) + ' Ko)');
+
 // 4. Assemblage
 const shell = read(path.join(SRC, 'shell.html'));
-const out = shell
+let out = shell
   .replace('/*__FONTS__*/', () => fontCss)
   .replace('/*__REACT__*/', () => react + '\n' + reactDom)
   .replace('/*__APP__*/', () => compiled);
+
+Object.keys(dataUrls).forEach(function (cle) {
+  out = out.split(cle).join(dataUrls[cle]);
+});
 
 const dest = path.join(ROOT, 'Index.html');
 fs.writeFileSync(dest, out);
