@@ -368,6 +368,91 @@ function Pieces({ titre, module, ligneId, categorie, fichiers, membre, onClose, 
   );
 }
 
+
+/* ============================================================
+   ÉCRAN DE CHARGEMENT
+   La planche du bateau se révèle du bas vers le haut pendant que
+   les données arrivent. La progression monte par paliers réels et
+   s'arrête à 92 % tant que le serveur n'a pas répondu, pour ne pas
+   promettre une fin qui n'est pas encore là.
+   ============================================================ */
+const ETAPES = [
+  { a: 0,  t: 'Connexion au serveur' },
+  { a: 26, t: 'Lecture des données' },
+  { a: 54, t: 'Mise en place' },
+  { a: 78, t: 'Presque prêt' },
+];
+
+function Chargement({ pret, erreur, onRetry, onFini, nom }){
+  const [flot, setFlot] = useState(4);
+  const [etape, setEtape] = useState(0);
+  const [sortie, setSortie] = useState(false);
+  // Durée plancher : si le serveur répond en 100 ms, l'écran ne doit pas
+  // clignoter. On laisse l'animation se jouer au moins ce temps-là.
+  const [plancher, setPlancher] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setPlancher(true), 900);
+    return () => clearTimeout(t);
+  }, []);
+  const fini = pret && plancher;
+
+  // Montée progressive, plafonnée tant que les données ne sont pas là.
+  useEffect(() => {
+    if (fini || erreur) return;
+    const t = setInterval(() => {
+      setFlot(v => {
+        const suivant = v + (v < 44 ? 10 : v < 68 ? 5 : v < 82 ? 2 : 0.5);
+        return Math.min(93, suivant);
+      });
+    }, 110);
+    return () => clearInterval(t);
+  }, [fini, erreur]);
+
+  useEffect(() => {
+    setEtape(ETAPES.reduce((acc, e, i) => flot >= e.a ? i : acc, 0));
+  }, [flot]);
+
+  // Données reçues : on remplit jusqu'en haut, puis on efface l'écran.
+  useEffect(() => {
+    if (!fini) return;
+    setFlot(100);
+    const a = setTimeout(() => setSortie(true), 620);
+    const b = setTimeout(() => onFini && onFini(), 1120);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, [fini, onFini]);
+
+  if (erreur) {
+    return (
+      <div className="boot">
+        <div className="boot-plate" style={{maxWidth:400,opacity:.5}}><i /></div>
+        <div className="boot-meta boot-fail">
+          <p className="boot-name" style={{marginBottom:12}}>Connexion impossible</p>
+          <p>Le serveur n'a pas répondu. Les données sont intactes, c'est la liaison qui a échoué.</p>
+          <div className="why">{erreur}</div>
+          <button className="btn btn-accent" onClick={onRetry}>Réessayer</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={'boot' + (sortie ? ' out' : '')} style={{'--flot': flot + '%'}}>
+      <div className="boot-plate">
+        <i />
+        <div className="boot-reveal"><i /></div>
+        <div className="boot-line" />
+      </div>
+      <div className="boot-meta">
+        <p className="boot-name">{nom || 'Projet Bateau'}</p>
+        <div className="boot-bar"><span /></div>
+        <p className="boot-status">
+          {flot >= 100 ? <b>Paré</b> : ETAPES[etape].t}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /* ============================================================
    BANDEAU — plaque de nom
    ============================================================ */
@@ -397,6 +482,7 @@ function Hero({ phase, onPhase, nomBateau, onRename, info, stats, membres, membr
 
   return (
     <header className="hero">
+      <div className="hero-plan" aria-hidden="true"><i /></div>
       <div className="hero-inner">
         <div className="plate">
           <span className={'eyebrow' + (apres ? '' : ' searching')}>
@@ -1079,6 +1165,9 @@ function App(){
   const [toast, setToast] = useState(null);
   const [membre, setMembre] = useState('');
   const [version, setVersion] = useState('1');
+  const [panne, setPanne] = useState(null);
+  const [essai, setEssai] = useState(0);
+  const [voile, setVoile] = useState(true);
 
   const say = useCallback((msg, bad) => {
     setToast({msg, bad});
@@ -1086,8 +1175,10 @@ function App(){
   }, []);
 
   useEffect(() => {
+    let vivant = true;
+    setPanne(null);
     server('getAllData').then(d => {
-      setData(d);
+      if (!vivant) return;
       const cfg = d.Config || [];
       const p = cfg.find(c=>c.cle==='phase');
       const n = cfg.find(c=>c.cle==='nomBateau') || cfg.find(c=>c.cle==='nomProjet');
@@ -1095,8 +1186,10 @@ function App(){
       if (p) setPhase(p.valeur);
       if (n) setNomBateau(n.valeur || '');
       if (ver) setVersion(String(ver.valeur || '1'));
-    }).catch(e => say(e.message, true));
-  }, [say]);
+      setData(d);
+    }).catch(e => { if (vivant) setPanne(e.message); });
+    return () => { vivant = false; };
+  }, [essai]);
 
   function changePhase(p){
     if (p === phase) return;
@@ -1164,7 +1257,14 @@ function App(){
     }).catch(e => say(e.message, true));
   }
 
-  if (!data) return <div className="boot">Chargement</div>;
+  const rideau = voile ? (
+    <Chargement pret={!!data && !panne} erreur={panne} nom={nomBateau}
+      onFini={()=>setVoile(false)}
+      onRetry={()=>{ setPanne(null); setEssai(n=>n+1); }} />
+  ) : null;
+
+  // Tant que rien n'est chargé, seul le voile est à l'écran.
+  if (!data) return rideau;
 
   const membres = data.Membres || [];
   const mod = MODULES.find(m => m.key === active) || MODULES[0];
@@ -1183,6 +1283,7 @@ function App(){
 
   return (
     <>
+      {rideau}
       <Hero phase={phase} onPhase={changePhase} nomBateau={nomBateau} onRename={rename} info={info} stats={stats}
         membres={membres} membre={membre} onMembre={setMembre} />
       <Tabs phase={phase} active={active} onSelect={setActive} counts={counts} />
