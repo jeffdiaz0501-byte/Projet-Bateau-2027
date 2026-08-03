@@ -238,6 +238,89 @@ td.num{font-family:var(--data);font-weight:500;font-variant-numeric:tabular-nums
 
 .boot{padding:80px 28px;text-align:center;color:var(--steel);font-family:var(--data);font-size:12px;letter-spacing:.14em;text-transform:uppercase;}
 
+
+/* ============================================================
+   PIÈCES JOINTES, COFFRE, CADRE LÉGAL
+   ============================================================ */
+.who{
+  width:100%;padding:8px 10px;border-radius:8px;
+  background:var(--hull);border:1px solid var(--deck);color:#DCE9EE;
+  font-size:12.5px;font-weight:600;
+}
+.who option{color:#111;}
+
+.clip{
+  display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:7px;
+  color:#A9BAC4;font-family:var(--data);font-size:10.5px;font-weight:500;
+}
+.clip:hover{background:#E4ECEF;color:var(--ink);}
+.clip.has{color:var(--signal-ink);background:#DDF5F0;}
+
+.muted{color:var(--steel);font-size:13px;line-height:1.55;}
+.err{color:var(--flare);font-size:12.5px;margin:10px 0 0;}
+
+.filerow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;}
+.filerow.bordered{padding:13px 16px;border-bottom:1px solid #E9EFF1;}
+.filerow.bordered:last-child{border-bottom:none;}
+.filemeta{min-width:0;}
+.filemeta a{display:block;font-weight:600;font-size:13.5px;word-break:break-word;text-decoration:none;}
+.filemeta a:hover{text-decoration:underline;}
+.filemeta span{display:block;font-family:var(--data);font-size:10.5px;color:var(--steel);margin-top:2px;}
+
+.drop{margin-top:18px;padding-top:18px;border-top:1px dashed var(--line);}
+.btn.busy{opacity:.6;pointer-events:none;}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+.chip{
+  padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:#fff;
+  font-size:12.5px;font-weight:500;color:var(--steel);
+}
+.chip span{font-family:var(--data);font-size:10.5px;margin-left:5px;opacity:.7;}
+.chip:hover{border-color:var(--steel);color:var(--ink);}
+.chip.on{background:var(--abyss);border-color:var(--abyss);color:#fff;}
+
+.avis{
+  background:#FFF8ED;border:1px solid #F0DCB8;border-left:3px solid var(--flare);
+  border-radius:10px;padding:14px 17px;margin-bottom:18px;
+  font-size:13px;line-height:1.6;color:#6B4A1E;
+}
+.avis strong{color:#4A3212;}
+
+.pacte{padding:4px 0;}
+.art{padding:20px 24px;border-bottom:1px solid #E9EFF1;}
+.art:last-child{border-bottom:none;}
+.art-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:9px;}
+.art-head h3{
+  font-family:var(--display);font-weight:600;font-size:15.5px;margin:0;letter-spacing:-.01em;
+  display:flex;flex-direction:column;gap:3px;
+}
+.art-n{font-family:var(--data);font-weight:500;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal-ink);}
+.art-tools{display:flex;gap:2px;flex-shrink:0;}
+.art-body{margin:0;font-size:13.5px;line-height:1.7;color:#2B3F4B;white-space:pre-wrap;}
+.art-actions{display:flex;justify-content:flex-end;gap:8px;}
+
+.sign{padding:20px 24px;margin-top:16px;}
+.sign .eyebrow{color:var(--steel);display:block;margin-bottom:14px;}
+.signrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #EDF2F4;}
+.signrow strong{display:block;font-size:13.5px;font-weight:600;}
+.signrow .muted{font-family:var(--data);font-size:10.5px;}
+.signbox{margin-top:18px;padding:16px 18px;background:#F4F9FA;border:1px solid var(--line);border-radius:10px;}
+.freeze{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+}
+.freeze strong{display:block;font-size:13.5px;}
+.freeze .muted{font-size:12.5px;}
+.btn:disabled{opacity:.5;pointer-events:none;}
+
+@media (max-width:760px){
+  .art{padding:16px 16px;}
+  .sign{padding:16px;}
+  .freeze .btn{width:100%;}
+  .head > div:last-child{display:flex;gap:8px;}
+  .head > div:last-child .btn,.head > div:last-child .btn-quiet{flex:1;text-align:center;}
+}
+
 /* ============================================================
    MOBILE
    ============================================================ */
@@ -582,6 +665,7 @@ const MODULES = [{
   sheet: 'Souhaits',
   label: 'Souhaits',
   phase: 'avant',
+  drive: 'Divers',
   empty: "Listez ce que chacun attend du bateau : type, taille, équipement, budget max. C'est la grille de lecture pour juger chaque visite.",
   fields: [{
     key: 'titre',
@@ -620,6 +704,7 @@ const MODULES = [{
   sheet: 'Budget',
   label: 'Budget',
   phase: 'avant',
+  drive: 'Devis',
   empty: "Chiffrez le projet complet : prix d'achat, place au port, assurance, entretien. L'écart entre estimé et réel se calcule tout seul.",
   fields: [{
     key: 'categorie',
@@ -651,6 +736,7 @@ const MODULES = [{
   sheet: 'Visites',
   label: 'Visites',
   phase: 'avant',
+  drive: 'Visites',
   empty: "Après chaque bateau vu, notez l'essentiel pendant que c'est frais : état, prix, ce qui coince. Dans trois mois vous ne vous en souviendrez plus.",
   fields: [{
     key: 'dateVisite',
@@ -723,6 +809,7 @@ const MODULES = [{
   sheet: 'Copropriete',
   label: 'Parts',
   phase: 'always',
+  drive: 'Contrats',
   empty: "Enregistrez l'apport de chacun. Les pourcentages de propriété se recalculent à chaque ligne.",
   fields: [{
     key: 'membre',
@@ -762,6 +849,7 @@ const MODULES = [{
   sheet: 'Entretien',
   label: 'Entretien',
   phase: 'apres',
+  drive: 'Entretien',
   empty: "Vidange, antifouling, contrôle du gréement, révision des équipements de sécurité. Une échéance et un responsable par tâche.",
   fields: [{
     key: 'tache',
@@ -812,6 +900,7 @@ const MODULES = [{
   sheet: 'Manutention',
   label: 'Manutention',
   phase: 'apres',
+  drive: 'Manutention',
   empty: "Mise à l'eau, sortie d'eau, carénage, hivernage. Qui s'en occupe et quand.",
   fields: [{
     key: 'type',
@@ -848,6 +937,7 @@ const MODULES = [{
   sheet: 'Planning',
   label: 'Planning',
   phase: 'apres',
+  drive: 'Divers',
   empty: "Qui prend le bateau, et quand. Réservez vos créneaux pour éviter les doublons.",
   fields: [{
     key: 'dateDebut',
@@ -879,6 +969,7 @@ const MODULES = [{
   sheet: 'Depenses',
   label: 'Dépenses',
   phase: 'apres',
+  drive: 'Factures',
   empty: "Chaque frais avancé par l'un d'entre vous, pour solder les comptes sans discussion.",
   fields: [{
     key: 'date',
@@ -920,28 +1011,17 @@ const MODULES = [{
   columns: ['date', 'libelle', 'montant', 'payePar', 'statut'],
   hideFrom: 1
 }, {
+  key: 'pacte',
+  sheet: 'Pacte',
+  label: 'Cadre légal',
+  phase: 'always',
+  special: 'pacte'
+}, {
   key: 'documents',
   sheet: 'Documents',
   label: 'Documents',
   phase: 'always',
-  empty: "Assurance, factures, acte de vente, manuels. Déposez les fichiers sur Drive et collez le lien ici.",
-  fields: [{
-    key: 'nom',
-    label: 'Nom',
-    type: 'text',
-    required: true
-  }, {
-    key: 'type',
-    label: 'Type',
-    type: 'select',
-    options: ['Assurance', 'Facture', 'Manuel', 'Certificat', 'Photo', 'Autre']
-  }, {
-    key: 'url',
-    label: 'Lien',
-    type: 'url'
-  }],
-  columns: ['nom', 'type', 'url'],
-  hideFrom: 1
+  special: 'fichiers'
 }, {
   key: 'membres',
   sheet: 'Membres',
@@ -980,6 +1060,8 @@ const PILL = {
   'Souhaité': 'pill-wait',
   'Bonus': 'pill-off'
 };
+const CATEGORIES = ['Factures', 'Contrats', 'Devis', 'Assurance', 'Visites', 'Entretien', 'Manutention', 'Photos', 'Cadre légal', 'Divers'];
+const MAX_MO = 10;
 
 /* ============================================================
    ►►► À CONFIGURER ◄◄◄
@@ -1136,7 +1218,11 @@ const DEMO = {
   Manutention: [],
   Planning: [],
   Depenses: [],
-  Documents: []
+  Documents: [],
+  Fichiers: [],
+  Pacte: [],
+  Signatures: [],
+  Versions: []
 };
 function rid() {
   return 'x' + Math.random().toString(36).slice(2, 8);
@@ -1238,6 +1324,156 @@ const isDateCol = c => /^date|Echeance|Realisation|datePrevue|dateReelle|datePai
 const isMoneyCol = c => /montant|prix|cout/i.test(c);
 
 /* ============================================================
+   PIÈCES JOINTES
+   ============================================================ */
+function poids(o) {
+  const n = Number(o) || 0;
+  if (n < 1024) return n + ' o';
+  if (n < 1048576) return Math.round(n / 1024) + ' Ko';
+  return (n / 1048576).toFixed(1).replace('.', ',') + ' Mo';
+}
+function lireBase64(file) {
+  return new Promise((ok, ko) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(',')[1]);
+    r.onerror = () => ko(new Error('Lecture du fichier impossible.'));
+    r.readAsDataURL(file);
+  });
+}
+
+/* Bouton trombone : compte les pièces et ouvre le panneau. */
+function Clip({
+  n,
+  onClick
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    className: 'clip' + (n ? ' has' : ''),
+    onClick: onClick,
+    title: n ? n + ' pièce' + (n > 1 ? 's' : '') + ' jointe' + (n > 1 ? 's' : '') : 'Aucune pièce jointe'
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.2",
+    strokeLinecap: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M21.4 11.05 12.25 20.2a6 6 0 0 1-8.49-8.49l9.2-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+  })), n > 0 && /*#__PURE__*/React.createElement("span", null, n));
+}
+
+/* Panneau d'ajout et de consultation des pièces d'une ligne. */
+function Pieces({
+  titre,
+  module,
+  ligneId,
+  categorie,
+  fichiers,
+  membre,
+  onClose,
+  onUpload,
+  onDelete
+}) {
+  const [cat, setCat] = useState(categorie || 'Divers');
+  const [busy, setBusy] = useState(false);
+  const [erreur, setErreur] = useState('');
+  async function choisir(e) {
+    const liste = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!liste.length) return;
+    setErreur('');
+    setBusy(true);
+    try {
+      for (const f of liste) {
+        if (f.size > MAX_MO * 1048576) throw new Error(f.name + ' dépasse ' + MAX_MO + ' Mo.');
+        const data = await lireBase64(f);
+        await onUpload({
+          module,
+          ligneId,
+          categorie: cat,
+          nom: f.name,
+          mime: f.type,
+          data,
+          ajoutePar: membre
+        });
+      }
+    } catch (err) {
+      setErreur(err.message);
+    }
+    setBusy(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scrim",
+    onMouseDown: e => {
+      if (e.target === e.currentTarget) onClose();
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sheet",
+    role: "dialog",
+    "aria-modal": "true"
+  }, /*#__PURE__*/React.createElement("h3", null, "Pi\xE8ces jointes"), /*#__PURE__*/React.createElement("div", {
+    className: "sheet-sub"
+  }, titre), fichiers.length === 0 && /*#__PURE__*/React.createElement("p", {
+    className: "muted",
+    style: {
+      marginTop: 0
+    }
+  }, "Aucun fichier pour l'instant."), fichiers.map(f => /*#__PURE__*/React.createElement("div", {
+    className: "filerow",
+    key: f.id
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "filemeta"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: f.url,
+    target: "_blank",
+    rel: "noreferrer"
+  }, f.nom), /*#__PURE__*/React.createElement("span", null, f.categorie, " \xB7 ", poids(f.taille), " \xB7 ", jour(f.dateAjout), f.ajoutePar ? ' · ' + f.ajoutePar : '')), /*#__PURE__*/React.createElement("button", {
+    className: "iconbtn",
+    title: "Supprimer",
+    onClick: () => {
+      if (confirm('Supprimer « ' + f.nom + ' » ? Le fichier partira à la corbeille Drive.')) onDelete(f.id);
+    }
+  }, "\u2715"))), /*#__PURE__*/React.createElement("div", {
+    className: "drop"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "field",
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", null, "Ranger dans"), /*#__PURE__*/React.createElement("select", {
+    value: cat,
+    onChange: e => setCat(e.target.value)
+  }, CATEGORIES.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c)))), /*#__PURE__*/React.createElement("label", {
+    className: 'btn btn-accent' + (busy ? ' busy' : ''),
+    style: {
+      display: 'inline-block'
+    }
+  }, busy ? 'Envoi en cours…' : 'Choisir des fichiers', /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    multiple: true,
+    hidden: true,
+    disabled: busy,
+    onChange: choisir
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "muted",
+    style: {
+      margin: '10px 0 0'
+    }
+  }, MAX_MO, " Mo maximum par fichier. Les fichiers sont rang\xE9s dans le dossier Drive du projet."), erreur && /*#__PURE__*/React.createElement("p", {
+    className: "err"
+  }, erreur)), /*#__PURE__*/React.createElement("div", {
+    className: "sheet-actions"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Fermer"))));
+}
+
+/* ============================================================
    BANDEAU — plaque de nom
    ============================================================ */
 function Hero({
@@ -1246,7 +1482,10 @@ function Hero({
   nomBateau,
   onRename,
   info,
-  stats
+  stats,
+  membres,
+  membre,
+  onMembre
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(nomBateau);
@@ -1304,7 +1543,21 @@ function Hero({
   }, "Recherche"), /*#__PURE__*/React.createElement("button", {
     "aria-pressed": apres,
     onClick: () => onPhase('apres')
-  }, "Propri\xE9t\xE9")))));
+  }, "Propri\xE9t\xE9")), /*#__PURE__*/React.createElement("div", {
+    className: "phase-label",
+    style: {
+      marginTop: 16
+    }
+  }, "Connect\xE9 en tant que"), /*#__PURE__*/React.createElement("select", {
+    className: "who",
+    value: membre,
+    onChange: e => onMembre(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Choisir mon nom"), membres.map(m => /*#__PURE__*/React.createElement("option", {
+    key: m.id,
+    value: m.nom
+  }, m.nom))))));
 }
 
 /* ============================================================
@@ -1443,12 +1696,17 @@ function ModuleView({
   mod,
   rows,
   membres,
+  fichiers,
+  membre,
   onAdd,
   onUpdate,
-  onDelete
+  onDelete,
+  onUpload,
+  onDeleteFile
 }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [pieces, setPieces] = useState(null);
   const cols = mod.columns || mod.fields.map(f => f.key);
   const hf = mod.hideFrom;
   function save(form) {
@@ -1484,12 +1742,19 @@ function ModuleView({
   }, "Ajouter la premi\xE8re ligne")) : /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, cols.map((c, i) => /*#__PURE__*/React.createElement("th", {
     key: c,
     className: hf != null && i >= hf ? 'hide-s' : ''
-  }, (mod.fields.find(f => f.key === c) || {}).label || c)), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, rows.map(r => /*#__PURE__*/React.createElement("tr", {
+  }, (mod.fields.find(f => f.key === c) || {}).label || c)), /*#__PURE__*/React.createElement("th", {
+    style: {
+      width: 34
+    }
+  }), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, rows.map(r => /*#__PURE__*/React.createElement("tr", {
     key: r.id
   }, cols.map((c, i) => /*#__PURE__*/React.createElement("td", {
     key: c,
     className: (isMoneyCol(c) ? 'num ' : '') + (hf != null && i >= hf ? 'hide-s' : '')
-  }, cell(c, r[c]))), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+  }, cell(c, r[c]))), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement(Clip, {
+    n: (fichiers || []).filter(f => f.module === mod.sheet && String(f.ligneId) === String(r.id)).length,
+    onClick: () => setPieces(r)
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
     className: "actions"
   }, /*#__PURE__*/React.createElement("button", {
     className: "iconbtn",
@@ -1510,6 +1775,16 @@ function ModuleView({
     membres: membres,
     onClose: () => setOpen(false),
     onSave: save
+  }), pieces && /*#__PURE__*/React.createElement(Pieces, {
+    titre: mod.label + ' — ' + (pieces[(mod.columns || [])[0]] || pieces[(mod.columns || [])[1]] || 'ligne'),
+    module: mod.sheet,
+    ligneId: pieces.id,
+    categorie: mod.drive,
+    membre: membre,
+    fichiers: (fichiers || []).filter(f => f.module === mod.sheet && String(f.ligneId) === String(pieces.id)),
+    onClose: () => setPieces(null),
+    onUpload: onUpload,
+    onDelete: onDeleteFile
   }));
 }
 
@@ -1799,6 +2074,362 @@ function Bord({
 }
 
 /* ============================================================
+   COFFRE — toutes les pièces jointes du projet
+   ============================================================ */
+function Coffre({
+  fichiers,
+  membre,
+  onUpload,
+  onDelete
+}) {
+  const [filtre, setFiltre] = useState('Toutes');
+  const [busy, setBusy] = useState(false);
+  const [erreur, setErreur] = useState('');
+  const [cat, setCat] = useState('Divers');
+  const liste = filtre === 'Toutes' ? fichiers : fichiers.filter(f => f.categorie === filtre);
+  const parCat = {};
+  fichiers.forEach(f => {
+    parCat[f.categorie] = (parCat[f.categorie] || 0) + 1;
+  });
+  async function choisir(e) {
+    const fs = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!fs.length) return;
+    setErreur('');
+    setBusy(true);
+    try {
+      for (const f of fs) {
+        if (f.size > MAX_MO * 1048576) throw new Error(f.name + ' dépasse ' + MAX_MO + ' Mo.');
+        const data = await lireBase64(f);
+        await onUpload({
+          module: 'Documents',
+          ligneId: '',
+          categorie: cat,
+          nom: f.name,
+          mime: f.type,
+          data,
+          ajoutePar: membre
+        });
+      }
+    } catch (err) {
+      setErreur(err.message);
+    }
+    setBusy(false);
+  }
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "head"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "Documents"), /*#__PURE__*/React.createElement("div", {
+    className: "sub"
+  }, fichiers.length, " fichier", fichiers.length > 1 ? 's' : '', " dans le dossier Drive du projet")), /*#__PURE__*/React.createElement("label", {
+    className: 'btn' + (busy ? ' busy' : '')
+  }, busy ? 'Envoi en cours…' : 'Déposer des fichiers', /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    multiple: true,
+    hidden: true,
+    disabled: busy,
+    onChange: choisir
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: '14px 16px',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "field",
+    style: {
+      margin: 0,
+      maxWidth: 260
+    }
+  }, /*#__PURE__*/React.createElement("label", null, "Ranger les nouveaux d\xE9p\xF4ts dans"), /*#__PURE__*/React.createElement("select", {
+    value: cat,
+    onChange: e => setCat(e.target.value)
+  }, CATEGORIES.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c)))), erreur && /*#__PURE__*/React.createElement("p", {
+    className: "err"
+  }, erreur)), /*#__PURE__*/React.createElement("div", {
+    className: "chips"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: 'chip' + (filtre === 'Toutes' ? ' on' : ''),
+    onClick: () => setFiltre('Toutes')
+  }, "Toutes ", /*#__PURE__*/React.createElement("span", null, fichiers.length)), CATEGORIES.filter(c => parCat[c]).map(c => /*#__PURE__*/React.createElement("button", {
+    key: c,
+    className: 'chip' + (filtre === c ? ' on' : ''),
+    onClick: () => setFiltre(c)
+  }, c, " ", /*#__PURE__*/React.createElement("span", null, parCat[c])))), /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, liste.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "empty"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rule"
+  }), /*#__PURE__*/React.createElement("p", null, "Factures, contrats, devis, photos. Tout ce que vous d\xE9posez ici part dans le dossier Drive du projet, rang\xE9 par cat\xE9gorie.")) : liste.map(f => /*#__PURE__*/React.createElement("div", {
+    className: "filerow bordered",
+    key: f.id
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "filemeta"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: f.url,
+    target: "_blank",
+    rel: "noreferrer"
+  }, f.nom), /*#__PURE__*/React.createElement("span", null, f.categorie, " \xB7 ", poids(f.taille), " \xB7 ", jour(f.dateAjout), f.ajoutePar ? ' · ' + f.ajoutePar : '', f.module && f.ligneId ? ' · rattaché à ' + f.module : '')), /*#__PURE__*/React.createElement("button", {
+    className: "iconbtn",
+    onClick: () => {
+      if (confirm('Supprimer « ' + f.nom + ' » ?')) onDelete(f.id);
+    }
+  }, "\u2715")))));
+}
+
+/* ============================================================
+   CADRE LÉGAL — pacte de copropriété
+   ============================================================ */
+function Pacte({
+  articles,
+  signatures,
+  versions,
+  membres,
+  membre,
+  version,
+  fichiers,
+  onAdd,
+  onUpdate,
+  onDelete,
+  onModele,
+  onSigner,
+  onDesigner,
+  onGeler,
+  onUpload,
+  onDeleteFile
+}) {
+  const [edite, setEdite] = useState(null);
+  const [brouillon, setBrouillon] = useState({
+    titre: '',
+    contenu: ''
+  });
+  const [nomSig, setNomSig] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [pieces, setPieces] = useState(false);
+  const tries = [...articles].sort((a, b) => (Number(a.ordre) || 0) - (Number(b.ordre) || 0));
+  const sigVersion = signatures.filter(s => String(s.version) === String(version));
+  const aSigne = sigVersion.find(s => s.membre === membre);
+  const manquants = membres.filter(m => !sigVersion.some(s => s.membre === m.nom));
+  const complet = membres.length > 0 && manquants.length === 0;
+  const piecesPacte = fichiers.filter(f => f.module === 'Pacte');
+  function ouvrir(a) {
+    setEdite(a.id);
+    setBrouillon({
+      titre: a.titre,
+      contenu: a.contenu
+    });
+  }
+  function enregistrer(a) {
+    onUpdate('Pacte', a.id, brouillon).then(() => setEdite(null));
+  }
+  function ajouter() {
+    const ordre = tries.length ? Math.max(...tries.map(a => Number(a.ordre) || 0)) + 1 : 1;
+    onAdd('Pacte', {
+      ordre,
+      titre: 'Nouvel article',
+      contenu: ''
+    });
+  }
+  function deplacer(a, sens) {
+    const i = tries.findIndex(x => x.id === a.id);
+    const j = i + sens;
+    if (j < 0 || j >= tries.length) return;
+    const b = tries[j];
+    onUpdate('Pacte', a.id, {
+      ordre: b.ordre
+    });
+    onUpdate('Pacte', b.id, {
+      ordre: a.ordre
+    });
+  }
+  function geler() {
+    if (!confirm('Figer la version ' + version + ' ?\n\nUn PDF horodaté sera déposé dans le dossier Drive, avec les signatures enregistrées. Le travail reprendra ensuite sur une nouvelle version.')) return;
+    setBusy(true);
+    onGeler().finally(() => setBusy(false));
+  }
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "head"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "Cadre l\xE9gal"), /*#__PURE__*/React.createElement("div", {
+    className: "sub"
+  }, "Convention d'indivision \xB7 version ", version, " en cours de r\xE9daction")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn-quiet",
+    onClick: () => setPieces(true)
+  }, "Pi\xE8ces", piecesPacte.length ? ' (' + piecesPacte.length + ')' : ''), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: ajouter
+  }, "Ajouter un article"))), /*#__PURE__*/React.createElement("div", {
+    className: "avis"
+  }, /*#__PURE__*/React.createElement("strong", null, "Ce texte est une base de travail, pas un acte valid\xE9."), " Il reprend la structure habituelle d'une convention d'indivision (articles 1873-1 et suivants du Code civil), mais chaque situation a ses particularit\xE9s : montage retenu, financement, francisation du navire, fiscalit\xE9. Faites relire la version finale par un notaire ou un avocat avant de l'ex\xE9cuter."), tries.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "empty"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rule"
+  }), /*#__PURE__*/React.createElement("p", null, "Partez de la trame type : dix-huit articles couvrant les quotes-parts, les charges, l'usage du bateau, la revente et la sortie d'un associ\xE9. Vous les retravaillerez ensemble ensuite."), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-accent",
+    onClick: () => onModele(false)
+  }, "Charger la trame"))) : /*#__PURE__*/React.createElement("div", {
+    className: "card pacte"
+  }, tries.map((a, i) => /*#__PURE__*/React.createElement("article", {
+    className: "art",
+    key: a.id
+  }, edite === a.id ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "field"
+  }, /*#__PURE__*/React.createElement("label", null, "Titre de l'article ", i + 1), /*#__PURE__*/React.createElement("input", {
+    value: brouillon.titre,
+    onChange: e => setBrouillon(b => ({
+      ...b,
+      titre: e.target.value
+    }))
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "field"
+  }, /*#__PURE__*/React.createElement("label", null, "Contenu"), /*#__PURE__*/React.createElement("textarea", {
+    style: {
+      minHeight: 190
+    },
+    value: brouillon.contenu,
+    onChange: e => setBrouillon(b => ({
+      ...b,
+      contenu: e.target.value
+    }))
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "art-actions"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn-quiet",
+    onClick: () => setEdite(null)
+  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-accent",
+    onClick: () => enregistrer(a)
+  }, "Enregistrer"))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "art-head"
+  }, /*#__PURE__*/React.createElement("h3", null, /*#__PURE__*/React.createElement("span", {
+    className: "art-n"
+  }, "Article ", i + 1), a.titre), /*#__PURE__*/React.createElement("div", {
+    className: "art-tools"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "iconbtn",
+    title: "Monter",
+    onClick: () => deplacer(a, -1)
+  }, "\u2191"), /*#__PURE__*/React.createElement("button", {
+    className: "iconbtn",
+    title: "Descendre",
+    onClick: () => deplacer(a, 1)
+  }, "\u2193"), /*#__PURE__*/React.createElement("button", {
+    className: "iconbtn",
+    onClick: () => ouvrir(a)
+  }, "Modifier"), /*#__PURE__*/React.createElement("button", {
+    className: "iconbtn",
+    onClick: () => {
+      if (confirm('Supprimer cet article ?')) onDelete('Pacte', a.id);
+    }
+  }, "\u2715"))), /*#__PURE__*/React.createElement("p", {
+    className: "art-body"
+  }, a.contenu || /*#__PURE__*/React.createElement("em", {
+    className: "muted"
+  }, "Article vide.")))))), tries.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card sign"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "Signatures \u2014 version ", version), membres.length === 0 && /*#__PURE__*/React.createElement("p", {
+    className: "muted"
+  }, "Ajoutez d'abord les membres dans l'onglet \xC9quipage."), membres.map(m => {
+    const s = sigVersion.find(x => x.membre === m.nom);
+    return /*#__PURE__*/React.createElement("div", {
+      className: "signrow",
+      key: m.id
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, m.nom), /*#__PURE__*/React.createElement("span", {
+      className: "muted"
+    }, s ? s.nomSignature + ' · ' + s.dateSignature : 'En attente')), s ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "pill pill-go"
+    }, "Sign\xE9"), s.membre === membre && /*#__PURE__*/React.createElement("button", {
+      className: "iconbtn",
+      title: "Retirer ma signature",
+      onClick: () => onDesigner(s.id)
+    }, "\u2715")) : /*#__PURE__*/React.createElement("span", {
+      className: "pill pill-wait"
+    }, "En attente"));
+  }), membre && !aSigne && /*#__PURE__*/React.createElement("div", {
+    className: "signbox"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "field",
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("label", null, "Portez votre nom complet pour valider"), /*#__PURE__*/React.createElement("input", {
+    value: nomSig,
+    onChange: e => setNomSig(e.target.value),
+    placeholder: "Pr\xE9nom NOM"
+  })), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-accent",
+    onClick: () => {
+      onSigner(nomSig).then(() => setNomSig(''));
+    }
+  }, "Je signe la version ", version), /*#__PURE__*/React.createElement("p", {
+    className: "muted",
+    style: {
+      margin: '10px 0 0'
+    }
+  }, "Cette acceptation est enregistr\xE9e avec la date et l'heure. Elle vaut accord entre vous, mais ne remplace pas une signature manuscrite ou \xE9lectronique qualifi\xE9e.")), !membre && /*#__PURE__*/React.createElement("p", {
+    className: "muted"
+  }, "S\xE9lectionnez votre nom en haut de l'\xE9cran pour pouvoir signer."), /*#__PURE__*/React.createElement("div", {
+    className: "freeze"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, complet ? 'Tout le monde a signé.' : manquants.length + ' signature' + (manquants.length > 1 ? 's' : '') + ' manquante' + (manquants.length > 1 ? 's' : '')), /*#__PURE__*/React.createElement("span", {
+    className: "muted"
+  }, "Figer g\xE9n\xE8re un PDF horodat\xE9 dans le dossier Drive et ouvre une nouvelle version.")), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: busy,
+    onClick: geler
+  }, busy ? 'Génération…' : 'Figer et archiver'))), versions.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: '18px 20px',
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow",
+    style: {
+      color: 'var(--steel)',
+      display: 'block',
+      marginBottom: 12
+    }
+  }, "Versions archiv\xE9es"), [...versions].reverse().map(v => /*#__PURE__*/React.createElement("div", {
+    className: "filerow",
+    key: v.id
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "filemeta"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: v.url,
+    target: "_blank",
+    rel: "noreferrer"
+  }, "Version ", v.version, " \u2014 PDF"), /*#__PURE__*/React.createElement("span", null, "Fig\xE9e le ", v.dateGel, v.geleePar ? ' par ' + v.geleePar : ''))))), pieces && /*#__PURE__*/React.createElement(Pieces, {
+    titre: "Cadre l\xE9gal",
+    module: "Pacte",
+    ligneId: "",
+    categorie: "Cadre l\xE9gal",
+    membre: membre,
+    fichiers: piecesPacte,
+    onClose: () => setPieces(false),
+    onUpload: onUpload,
+    onDelete: onDeleteFile
+  }));
+}
+
+/* ============================================================
    APPLICATION
    ============================================================ */
 function App() {
@@ -1807,6 +2438,8 @@ function App() {
   const [nomBateau, setNomBateau] = useState('');
   const [active, setActive] = useState('bord');
   const [toast, setToast] = useState(null);
+  const [membre, setMembre] = useState('');
+  const [version, setVersion] = useState('1');
   const say = useCallback((msg, bad) => {
     setToast({
       msg,
@@ -1820,8 +2453,10 @@ function App() {
       const cfg = d.Config || [];
       const p = cfg.find(c => c.cle === 'phase');
       const n = cfg.find(c => c.cle === 'nomBateau') || cfg.find(c => c.cle === 'nomProjet');
+      const ver = cfg.find(c => c.cle === 'pacteVersion');
       if (p) setPhase(p.valeur);
       if (n) setNomBateau(n.valeur || '');
+      if (ver) setVersion(String(ver.valeur || '1'));
     }).catch(e => say(e.message, true));
   }, [say]);
   function changePhase(p) {
@@ -1869,6 +2504,68 @@ function App() {
       say('Ligne supprimée');
     }).catch(e => say(e.message, true));
   }
+  function upload(payload) {
+    return server('uploadFichier', payload).then(row => {
+      setData(d => ({
+        ...d,
+        Fichiers: [...(d.Fichiers || []), row]
+      }));
+      say('Fichier déposé');
+      return row;
+    }).catch(e => {
+      say(e.message, true);
+      throw e;
+    });
+  }
+  function supprimerFichier(id) {
+    return server('supprimerFichier', id).then(() => {
+      setData(d => ({
+        ...d,
+        Fichiers: (d.Fichiers || []).filter(f => f.id !== id)
+      }));
+      say('Fichier supprimé');
+    }).catch(e => say(e.message, true));
+  }
+  function chargerModele(forcer) {
+    return server('chargerModelePacte', !!forcer).then(rows => {
+      setData(d => ({
+        ...d,
+        Pacte: rows
+      }));
+      say('Trame chargée');
+    }).catch(e => say(e.message, true));
+  }
+  function signer(nom) {
+    return server('signerPacte', membre, nom, '').then(row => {
+      setData(d => ({
+        ...d,
+        Signatures: [...(d.Signatures || []), row]
+      }));
+      say('Signature enregistrée');
+    }).catch(e => {
+      say(e.message, true);
+      throw e;
+    });
+  }
+  function designer(id) {
+    return server('retirerSignature', id).then(() => {
+      setData(d => ({
+        ...d,
+        Signatures: (d.Signatures || []).filter(x => x.id !== id)
+      }));
+      say('Signature retirée');
+    }).catch(e => say(e.message, true));
+  }
+  function geler() {
+    return server('gelerPacte', membre).then(row => {
+      setData(d => ({
+        ...d,
+        Versions: [...(d.Versions || []), row]
+      }));
+      setVersion(v => String(Number(v) + 1));
+      say('Version archivée dans Drive');
+    }).catch(e => say(e.message, true));
+  }
   if (!data) return /*#__PURE__*/React.createElement("div", {
     className: "boot"
   }, "Chargement");
@@ -1894,7 +2591,10 @@ function App() {
     nomBateau: nomBateau,
     onRename: rename,
     info: info,
-    stats: stats
+    stats: stats,
+    membres: membres,
+    membre: membre,
+    onMembre: setMembre
   }), /*#__PURE__*/React.createElement(Tabs, {
     phase: phase,
     active: active,
@@ -1912,13 +2612,39 @@ function App() {
     rows: data.BateauInfo || [],
     onAdd: add,
     onUpdate: update
-  }), mod.sheet && mod.key !== 'identite' && /*#__PURE__*/React.createElement(ModuleView, {
+  }), mod.key === 'documents' && /*#__PURE__*/React.createElement(Coffre, {
+    fichiers: data.Fichiers || [],
+    membre: membre,
+    onUpload: upload,
+    onDelete: supprimerFichier
+  }), mod.key === 'pacte' && /*#__PURE__*/React.createElement(Pacte, {
+    articles: data.Pacte || [],
+    signatures: data.Signatures || [],
+    versions: data.Versions || [],
+    membres: membres,
+    membre: membre,
+    version: version,
+    fichiers: data.Fichiers || [],
+    onAdd: add,
+    onUpdate: update,
+    onDelete: remove,
+    onModele: chargerModele,
+    onSigner: signer,
+    onDesigner: designer,
+    onGeler: geler,
+    onUpload: upload,
+    onDeleteFile: supprimerFichier
+  }), mod.sheet && !mod.special && /*#__PURE__*/React.createElement(ModuleView, {
     mod: mod,
     rows: data[mod.sheet] || [],
     membres: membres,
+    fichiers: data.Fichiers || [],
+    membre: membre,
     onAdd: add,
     onUpdate: update,
-    onDelete: remove
+    onDelete: remove,
+    onUpload: upload,
+    onDeleteFile: supprimerFichier
   })), toast && /*#__PURE__*/React.createElement("div", {
     className: 'toast' + (toast.bad ? ' bad' : '')
   }, toast.msg));
