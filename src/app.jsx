@@ -7,7 +7,7 @@ const { useState, useEffect, useCallback } = React;
 const MODULES = [
   { key:'bord', sheet:null, label:'Bord', phase:'always' },
 
-  { key:'souhaits', sheet:'Souhaits', label:'Souhaits', phase:'avant',
+  { key:'souhaits', sheet:'Souhaits', label:'Souhaits', phase:'avant', drive:'Divers',
     empty:"Listez ce que chacun attend du bateau : type, taille, équipement, budget max. C'est la grille de lecture pour juger chaque visite.",
     fields:[
       {key:'titre', label:'Titre', type:'text', required:true},
@@ -19,7 +19,7 @@ const MODULES = [
     ],
     columns:['titre','categorie','priorite','statut'], hideFrom:1 },
 
-  { key:'budget', sheet:'Budget', label:'Budget', phase:'avant',
+  { key:'budget', sheet:'Budget', label:'Budget', phase:'avant', drive:'Devis',
     empty:"Chiffrez le projet complet : prix d'achat, place au port, assurance, entretien. L'écart entre estimé et réel se calcule tout seul.",
     fields:[
       {key:'categorie', label:'Catégorie', type:'select', options:['Achat','Taxes & immatriculation','Assurance','Entretien annuel','Place au port','Équipement','Convoyage','Autre']},
@@ -30,7 +30,7 @@ const MODULES = [
     ],
     columns:['categorie','libelle','montantEstime','montantReel'], hideFrom:3 },
 
-  { key:'visites', sheet:'Visites', label:'Visites', phase:'avant',
+  { key:'visites', sheet:'Visites', label:'Visites', phase:'avant', drive:'Visites',
     empty:"Après chaque bateau vu, notez l'essentiel pendant que c'est frais : état, prix, ce qui coince. Dans trois mois vous ne vous en souviendrez plus.",
     fields:[
       {key:'dateVisite', label:'Date de visite', type:'date'},
@@ -51,7 +51,7 @@ const MODULES = [
     ],
     columns:['dateVisite','nomBateau','lieu','prixDemande','note','decision'], hideFrom:2 },
 
-  { key:'parts', sheet:'Copropriete', label:'Parts', phase:'always',
+  { key:'parts', sheet:'Copropriete', label:'Parts', phase:'always', drive:'Contrats',
     empty:"Enregistrez l'apport de chacun. Les pourcentages de propriété se recalculent à chaque ligne.",
     fields:[
       {key:'membre', label:'Membre', type:'select', optionsFrom:'membres', required:true},
@@ -64,7 +64,7 @@ const MODULES = [
 
   { key:'identite', sheet:'BateauInfo', label:'Identité', phase:'apres', special:'identite' },
 
-  { key:'entretien', sheet:'Entretien', label:'Entretien', phase:'apres',
+  { key:'entretien', sheet:'Entretien', label:'Entretien', phase:'apres', drive:'Entretien',
     empty:"Vidange, antifouling, contrôle du gréement, révision des équipements de sécurité. Une échéance et un responsable par tâche.",
     fields:[
       {key:'tache', label:'Tâche', type:'text', required:true},
@@ -79,7 +79,7 @@ const MODULES = [
     ],
     columns:['tache','categorie','prochaineEcheance','responsable','statut'], hideFrom:1 },
 
-  { key:'manutention', sheet:'Manutention', label:'Manutention', phase:'apres',
+  { key:'manutention', sheet:'Manutention', label:'Manutention', phase:'apres', drive:'Manutention',
     empty:"Mise à l'eau, sortie d'eau, carénage, hivernage. Qui s'en occupe et quand.",
     fields:[
       {key:'type', label:'Type', type:'select', options:["Mise à l'eau","Sortie d'eau",'Hivernage','Carénage','Convoyage','Autre']},
@@ -91,7 +91,7 @@ const MODULES = [
     ],
     columns:['type','datePrevue','responsable','statut'], hideFrom:2 },
 
-  { key:'planning', sheet:'Planning', label:'Planning', phase:'apres',
+  { key:'planning', sheet:'Planning', label:'Planning', phase:'apres', drive:'Divers',
     empty:"Qui prend le bateau, et quand. Réservez vos créneaux pour éviter les doublons.",
     fields:[
       {key:'dateDebut', label:'Début', type:'date', required:true},
@@ -102,7 +102,7 @@ const MODULES = [
     ],
     columns:['dateDebut','dateFin','typeUsage','membres'], hideFrom:2 },
 
-  { key:'depenses', sheet:'Depenses', label:'Dépenses', phase:'apres',
+  { key:'depenses', sheet:'Depenses', label:'Dépenses', phase:'apres', drive:'Factures',
     empty:"Chaque frais avancé par l'un d'entre vous, pour solder les comptes sans discussion.",
     fields:[
       {key:'date', label:'Date', type:'date'},
@@ -116,14 +116,9 @@ const MODULES = [
     ],
     columns:['date','libelle','montant','payePar','statut'], hideFrom:1 },
 
-  { key:'documents', sheet:'Documents', label:'Documents', phase:'always',
-    empty:"Assurance, factures, acte de vente, manuels. Déposez les fichiers sur Drive et collez le lien ici.",
-    fields:[
-      {key:'nom', label:'Nom', type:'text', required:true},
-      {key:'type', label:'Type', type:'select', options:['Assurance','Facture','Manuel','Certificat','Photo','Autre']},
-      {key:'url', label:'Lien', type:'url'},
-    ],
-    columns:['nom','type','url'], hideFrom:1 },
+  { key:'pacte', sheet:'Pacte', label:'Cadre légal', phase:'always', special:'pacte' },
+
+  { key:'documents', sheet:'Documents', label:'Documents', phase:'always', special:'fichiers' },
 
   { key:'membres', sheet:'Membres', label:'Équipage', phase:'always',
     empty:"Ajoutez chaque copropriétaire. Les noms alimentent tous les menus de l'application.",
@@ -147,6 +142,9 @@ const PILL = {
   'Abandonné':'pill-off','Rejeté':'pill-off','Annulé':'pill-off',
   'Indispensable':'pill-warn','Souhaité':'pill-wait','Bonus':'pill-off',
 };
+
+const CATEGORIES = ['Factures','Contrats','Devis','Assurance','Visites','Entretien','Manutention','Photos','Cadre légal','Divers'];
+const MAX_MO = 10;
 
 /* ============================================================
    ►►► À CONFIGURER ◄◄◄
@@ -197,6 +195,7 @@ const DEMO = {
     {id:'p3',membre:'Antoine',montant:15000,datePaiement:'2026-07-03',type:'Apport initial',notes:''},
   ],
   BateauInfo:[], Entretien:[], Manutention:[], Planning:[], Depenses:[], Documents:[],
+  Fichiers:[], Pacte:[], Signatures:[], Versions:[],
 };
 
 function rid(){ return 'x' + Math.random().toString(36).slice(2,8); }
@@ -271,10 +270,108 @@ function jour(v){
 const isDateCol  = c => /^date|Echeance|Realisation|datePrevue|dateReelle|datePaiement|dateDebut|dateFin/i.test(c);
 const isMoneyCol = c => /montant|prix|cout/i.test(c);
 
+
+/* ============================================================
+   PIÈCES JOINTES
+   ============================================================ */
+function poids(o){
+  const n = Number(o)||0;
+  if (n < 1024) return n + ' o';
+  if (n < 1048576) return Math.round(n/1024) + ' Ko';
+  return (n/1048576).toFixed(1).replace('.',',') + ' Mo';
+}
+
+function lireBase64(file){
+  return new Promise((ok, ko) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(',')[1]);
+    r.onerror = () => ko(new Error('Lecture du fichier impossible.'));
+    r.readAsDataURL(file);
+  });
+}
+
+/* Bouton trombone : compte les pièces et ouvre le panneau. */
+function Clip({ n, onClick }){
+  return (
+    <button className={'clip' + (n ? ' has' : '')} onClick={onClick}
+      title={n ? n + ' pièce' + (n>1?'s':'') + ' jointe' + (n>1?'s':'') : 'Aucune pièce jointe'}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+        <path d="M21.4 11.05 12.25 20.2a6 6 0 0 1-8.49-8.49l9.2-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+      </svg>
+      {n > 0 && <span>{n}</span>}
+    </button>
+  );
+}
+
+/* Panneau d'ajout et de consultation des pièces d'une ligne. */
+function Pieces({ titre, module, ligneId, categorie, fichiers, membre, onClose, onUpload, onDelete }){
+  const [cat, setCat] = useState(categorie || 'Divers');
+  const [busy, setBusy] = useState(false);
+  const [erreur, setErreur] = useState('');
+
+  async function choisir(e){
+    const liste = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!liste.length) return;
+    setErreur(''); setBusy(true);
+    try {
+      for (const f of liste){
+        if (f.size > MAX_MO * 1048576) throw new Error(f.name + ' dépasse ' + MAX_MO + ' Mo.');
+        const data = await lireBase64(f);
+        await onUpload({ module, ligneId, categorie: cat, nom: f.name, mime: f.type, data, ajoutePar: membre });
+      }
+    } catch (err) { setErreur(err.message); }
+    setBusy(false);
+  }
+
+  return (
+    <div className="scrim" onMouseDown={e=>{ if(e.target===e.currentTarget) onClose(); }}>
+      <div className="sheet" role="dialog" aria-modal="true">
+        <h3>Pièces jointes</h3>
+        <div className="sheet-sub">{titre}</div>
+
+        {fichiers.length === 0 && <p className="muted" style={{marginTop:0}}>Aucun fichier pour l'instant.</p>}
+
+        {fichiers.map(f => (
+          <div className="filerow" key={f.id}>
+            <div className="filemeta">
+              <a href={f.url} target="_blank" rel="noreferrer">{f.nom}</a>
+              <span>{f.categorie} · {poids(f.taille)} · {jour(f.dateAjout)}{f.ajoutePar ? ' · ' + f.ajoutePar : ''}</span>
+            </div>
+            <button className="iconbtn" title="Supprimer"
+              onClick={()=>{ if(confirm('Supprimer « ' + f.nom + ' » ? Le fichier partira à la corbeille Drive.')) onDelete(f.id); }}>✕</button>
+          </div>
+        ))}
+
+        <div className="drop">
+          <div className="field" style={{marginBottom:12}}>
+            <label>Ranger dans</label>
+            <select value={cat} onChange={e=>setCat(e.target.value)}>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <label className={'btn btn-accent' + (busy ? ' busy' : '')} style={{display:'inline-block'}}>
+            {busy ? 'Envoi en cours…' : 'Choisir des fichiers'}
+            <input type="file" multiple hidden disabled={busy} onChange={choisir} />
+          </label>
+          <p className="muted" style={{margin:'10px 0 0'}}>
+            {MAX_MO} Mo maximum par fichier. Les fichiers sont rangés dans le dossier Drive du projet.
+          </p>
+          {erreur && <p className="err">{erreur}</p>}
+        </div>
+
+        <div className="sheet-actions">
+          <button className="btn" onClick={onClose}>Fermer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ============================================================
    BANDEAU — plaque de nom
    ============================================================ */
-function Hero({ phase, onPhase, nomBateau, onRename, info, stats }){
+function Hero({ phase, onPhase, nomBateau, onRename, info, stats, membres, membre, onMembre }){
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(nomBateau);
   useEffect(()=>{ setDraft(nomBateau); },[nomBateau]);
@@ -335,6 +432,11 @@ function Hero({ phase, onPhase, nomBateau, onRename, info, stats }){
             <button aria-pressed={!apres} onClick={()=>onPhase('avant')}>Recherche</button>
             <button aria-pressed={apres} onClick={()=>onPhase('apres')}>Propriété</button>
           </div>
+          <div className="phase-label" style={{marginTop:16}}>Connecté en tant que</div>
+          <select className="who" value={membre} onChange={e=>onMembre(e.target.value)}>
+            <option value="">Choisir mon nom</option>
+            {membres.map(m => <option key={m.id} value={m.nom}>{m.nom}</option>)}
+          </select>
         </div>
       </div>
     </header>
@@ -434,9 +536,10 @@ function cell(col, v){
 /* ============================================================
    VUE MODULE
    ============================================================ */
-function ModuleView({ mod, rows, membres, onAdd, onUpdate, onDelete }){
+function ModuleView({ mod, rows, membres, fichiers, membre, onAdd, onUpdate, onDelete, onUpload, onDeleteFile }){
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [pieces, setPieces] = useState(null);
   const cols = mod.columns || mod.fields.map(f=>f.key);
   const hf = mod.hideFrom;
 
@@ -474,6 +577,7 @@ function ModuleView({ mod, rows, membres, onAdd, onUpdate, onDelete }){
                   {(mod.fields.find(f=>f.key===c)||{}).label || c}
                 </th>
               ))}
+              <th style={{width:34}} />
               <th />
             </tr></thead>
             <tbody>
@@ -484,6 +588,10 @@ function ModuleView({ mod, rows, membres, onAdd, onUpdate, onDelete }){
                       {cell(c, r[c])}
                     </td>
                   ))}
+                  <td>
+                    <Clip n={(fichiers||[]).filter(f=>f.module===mod.sheet && String(f.ligneId)===String(r.id)).length}
+                      onClick={()=>setPieces(r)} />
+                  </td>
                   <td>
                     <div className="actions">
                       <button className="iconbtn" title="Modifier" onClick={()=>{ setEditing(r); setOpen(true); }}>Modifier</button>
@@ -499,6 +607,14 @@ function ModuleView({ mod, rows, membres, onAdd, onUpdate, onDelete }){
 
       {open && <Sheet mod={mod} initial={editing} membres={membres}
         onClose={()=>setOpen(false)} onSave={save} />}
+
+      {pieces && (
+        <Pieces
+          titre={mod.label + ' — ' + (pieces[(mod.columns||[])[0]] || pieces[(mod.columns||[])[1]] || 'ligne')}
+          module={mod.sheet} ligneId={pieces.id} categorie={mod.drive} membre={membre}
+          fichiers={(fichiers||[]).filter(f=>f.module===mod.sheet && String(f.ligneId)===String(pieces.id))}
+          onClose={()=>setPieces(null)} onUpload={onUpload} onDelete={onDeleteFile} />
+      )}
     </>
   );
 }
@@ -676,6 +792,282 @@ function Bord({ data, phase, onGo }){
   );
 }
 
+
+/* ============================================================
+   COFFRE — toutes les pièces jointes du projet
+   ============================================================ */
+function Coffre({ fichiers, membre, onUpload, onDelete }){
+  const [filtre, setFiltre] = useState('Toutes');
+  const [busy, setBusy] = useState(false);
+  const [erreur, setErreur] = useState('');
+  const [cat, setCat] = useState('Divers');
+
+  const liste = filtre === 'Toutes' ? fichiers : fichiers.filter(f => f.categorie === filtre);
+  const parCat = {};
+  fichiers.forEach(f => { parCat[f.categorie] = (parCat[f.categorie]||0) + 1; });
+
+  async function choisir(e){
+    const fs = Array.from(e.target.files||[]); e.target.value='';
+    if (!fs.length) return;
+    setErreur(''); setBusy(true);
+    try {
+      for (const f of fs){
+        if (f.size > MAX_MO*1048576) throw new Error(f.name + ' dépasse ' + MAX_MO + ' Mo.');
+        const data = await lireBase64(f);
+        await onUpload({ module:'Documents', ligneId:'', categorie:cat, nom:f.name, mime:f.type, data, ajoutePar:membre });
+      }
+    } catch(err){ setErreur(err.message); }
+    setBusy(false);
+  }
+
+  return (
+    <>
+      <div className="head">
+        <div>
+          <h2>Documents</h2>
+          <div className="sub">{fichiers.length} fichier{fichiers.length>1?'s':''} dans le dossier Drive du projet</div>
+        </div>
+        <label className={'btn' + (busy ? ' busy' : '')}>
+          {busy ? 'Envoi en cours…' : 'Déposer des fichiers'}
+          <input type="file" multiple hidden disabled={busy} onChange={choisir} />
+        </label>
+      </div>
+
+      <div className="card" style={{padding:'14px 16px',marginBottom:16}}>
+        <div className="field" style={{margin:0,maxWidth:260}}>
+          <label>Ranger les nouveaux dépôts dans</label>
+          <select value={cat} onChange={e=>setCat(e.target.value)}>
+            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        {erreur && <p className="err">{erreur}</p>}
+      </div>
+
+      <div className="chips">
+        <button className={'chip' + (filtre==='Toutes'?' on':'')} onClick={()=>setFiltre('Toutes')}>
+          Toutes <span>{fichiers.length}</span>
+        </button>
+        {CATEGORIES.filter(c=>parCat[c]).map(c => (
+          <button key={c} className={'chip' + (filtre===c?' on':'')} onClick={()=>setFiltre(c)}>
+            {c} <span>{parCat[c]}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="card">
+        {liste.length === 0 ? (
+          <div className="empty">
+            <div className="rule" />
+            <p>Factures, contrats, devis, photos. Tout ce que vous déposez ici part dans le dossier Drive du projet, rangé par catégorie.</p>
+          </div>
+        ) : liste.map(f => (
+          <div className="filerow bordered" key={f.id}>
+            <div className="filemeta">
+              <a href={f.url} target="_blank" rel="noreferrer">{f.nom}</a>
+              <span>{f.categorie} · {poids(f.taille)} · {jour(f.dateAjout)}
+                {f.ajoutePar ? ' · ' + f.ajoutePar : ''}
+                {f.module && f.ligneId ? ' · rattaché à ' + f.module : ''}</span>
+            </div>
+            <button className="iconbtn" onClick={()=>{ if(confirm('Supprimer « '+f.nom+' » ?')) onDelete(f.id); }}>✕</button>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ============================================================
+   CADRE LÉGAL — pacte de copropriété
+   ============================================================ */
+function Pacte({ articles, signatures, versions, membres, membre, version, fichiers,
+                 onAdd, onUpdate, onDelete, onModele, onSigner, onDesigner, onGeler, onUpload, onDeleteFile }){
+  const [edite, setEdite] = useState(null);
+  const [brouillon, setBrouillon] = useState({titre:'', contenu:''});
+  const [nomSig, setNomSig] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [pieces, setPieces] = useState(false);
+
+  const tries = [...articles].sort((a,b)=>(Number(a.ordre)||0)-(Number(b.ordre)||0));
+  const sigVersion = signatures.filter(s => String(s.version) === String(version));
+  const aSigne = sigVersion.find(s => s.membre === membre);
+  const manquants = membres.filter(m => !sigVersion.some(s => s.membre === m.nom));
+  const complet = membres.length > 0 && manquants.length === 0;
+  const piecesPacte = fichiers.filter(f => f.module === 'Pacte');
+
+  function ouvrir(a){ setEdite(a.id); setBrouillon({titre:a.titre, contenu:a.contenu}); }
+
+  function enregistrer(a){
+    onUpdate('Pacte', a.id, brouillon).then(()=>setEdite(null));
+  }
+
+  function ajouter(){
+    const ordre = tries.length ? Math.max(...tries.map(a=>Number(a.ordre)||0)) + 1 : 1;
+    onAdd('Pacte', {ordre, titre:'Nouvel article', contenu:''});
+  }
+
+  function deplacer(a, sens){
+    const i = tries.findIndex(x=>x.id===a.id);
+    const j = i + sens;
+    if (j < 0 || j >= tries.length) return;
+    const b = tries[j];
+    onUpdate('Pacte', a.id, {ordre:b.ordre});
+    onUpdate('Pacte', b.id, {ordre:a.ordre});
+  }
+
+  function geler(){
+    if (!confirm('Figer la version ' + version + ' ?\n\nUn PDF horodaté sera déposé dans le dossier Drive, avec les signatures enregistrées. Le travail reprendra ensuite sur une nouvelle version.')) return;
+    setBusy(true);
+    onGeler().finally(()=>setBusy(false));
+  }
+
+  return (
+    <>
+      <div className="head">
+        <div>
+          <h2>Cadre légal</h2>
+          <div className="sub">Convention d'indivision · version {version} en cours de rédaction</div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <button className="btn-quiet" onClick={()=>setPieces(true)}>
+            Pièces{piecesPacte.length ? ' (' + piecesPacte.length + ')' : ''}
+          </button>
+          <button className="btn" onClick={ajouter}>Ajouter un article</button>
+        </div>
+      </div>
+
+      <div className="avis">
+        <strong>Ce texte est une base de travail, pas un acte validé.</strong> Il reprend la structure
+        habituelle d'une convention d'indivision (articles 1873-1 et suivants du Code civil), mais chaque
+        situation a ses particularités : montage retenu, financement, francisation du navire, fiscalité.
+        Faites relire la version finale par un notaire ou un avocat avant de l'exécuter.
+      </div>
+
+      {tries.length === 0 ? (
+        <div className="card">
+          <div className="empty">
+            <div className="rule" />
+            <p>Partez de la trame type : dix-huit articles couvrant les quotes-parts, les charges, l'usage du bateau, la revente et la sortie d'un associé. Vous les retravaillerez ensemble ensuite.</p>
+            <button className="btn btn-accent" onClick={()=>onModele(false)}>Charger la trame</button>
+          </div>
+        </div>
+      ) : (
+        <div className="card pacte">
+          {tries.map((a, i) => (
+            <article className="art" key={a.id}>
+              {edite === a.id ? (
+                <>
+                  <div className="field">
+                    <label>Titre de l'article {i+1}</label>
+                    <input value={brouillon.titre} onChange={e=>setBrouillon(b=>({...b,titre:e.target.value}))} />
+                  </div>
+                  <div className="field">
+                    <label>Contenu</label>
+                    <textarea style={{minHeight:190}} value={brouillon.contenu}
+                      onChange={e=>setBrouillon(b=>({...b,contenu:e.target.value}))} />
+                  </div>
+                  <div className="art-actions">
+                    <button className="btn-quiet" onClick={()=>setEdite(null)}>Annuler</button>
+                    <button className="btn btn-accent" onClick={()=>enregistrer(a)}>Enregistrer</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="art-head">
+                    <h3><span className="art-n">Article {i+1}</span>{a.titre}</h3>
+                    <div className="art-tools">
+                      <button className="iconbtn" title="Monter" onClick={()=>deplacer(a,-1)}>↑</button>
+                      <button className="iconbtn" title="Descendre" onClick={()=>deplacer(a,1)}>↓</button>
+                      <button className="iconbtn" onClick={()=>ouvrir(a)}>Modifier</button>
+                      <button className="iconbtn" onClick={()=>{ if(confirm('Supprimer cet article ?')) onDelete('Pacte', a.id); }}>✕</button>
+                    </div>
+                  </div>
+                  <p className="art-body">{a.contenu || <em className="muted">Article vide.</em>}</p>
+                </>
+              )}
+            </article>
+          ))}
+        </div>
+      )}
+
+      {tries.length > 0 && (
+        <div className="card sign">
+          <span className="eyebrow">Signatures — version {version}</span>
+
+          {membres.length === 0 && <p className="muted">Ajoutez d'abord les membres dans l'onglet Équipage.</p>}
+
+          {membres.map(m => {
+            const s = sigVersion.find(x => x.membre === m.nom);
+            return (
+              <div className="signrow" key={m.id}>
+                <div>
+                  <strong>{m.nom}</strong>
+                  <span className="muted">{s ? s.nomSignature + ' · ' + s.dateSignature : 'En attente'}</span>
+                </div>
+                {s
+                  ? <div style={{display:'flex',alignItems:'center',gap:8}}>
+                      <span className="pill pill-go">Signé</span>
+                      {s.membre === membre && (
+                        <button className="iconbtn" title="Retirer ma signature" onClick={()=>onDesigner(s.id)}>✕</button>
+                      )}
+                    </div>
+                  : <span className="pill pill-wait">En attente</span>}
+              </div>
+            );
+          })}
+
+          {membre && !aSigne && (
+            <div className="signbox">
+              <div className="field" style={{marginBottom:10}}>
+                <label>Portez votre nom complet pour valider</label>
+                <input value={nomSig} onChange={e=>setNomSig(e.target.value)} placeholder="Prénom NOM" />
+              </div>
+              <button className="btn btn-accent" onClick={()=>{ onSigner(nomSig).then(()=>setNomSig('')); }}>
+                Je signe la version {version}
+              </button>
+              <p className="muted" style={{margin:'10px 0 0'}}>
+                Cette acceptation est enregistrée avec la date et l'heure. Elle vaut accord entre vous,
+                mais ne remplace pas une signature manuscrite ou électronique qualifiée.
+              </p>
+            </div>
+          )}
+
+          {!membre && <p className="muted">Sélectionnez votre nom en haut de l'écran pour pouvoir signer.</p>}
+
+          <div className="freeze">
+            <div>
+              <strong>{complet ? 'Tout le monde a signé.' : manquants.length + ' signature' + (manquants.length>1?'s':'') + ' manquante' + (manquants.length>1?'s':'')}</strong>
+              <span className="muted">Figer génère un PDF horodaté dans le dossier Drive et ouvre une nouvelle version.</span>
+            </div>
+            <button className="btn" disabled={busy} onClick={geler}>
+              {busy ? 'Génération…' : 'Figer et archiver'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {versions.length > 0 && (
+        <div className="card" style={{padding:'18px 20px',marginTop:16}}>
+          <span className="eyebrow" style={{color:'var(--steel)',display:'block',marginBottom:12}}>Versions archivées</span>
+          {[...versions].reverse().map(v => (
+            <div className="filerow" key={v.id}>
+              <div className="filemeta">
+                <a href={v.url} target="_blank" rel="noreferrer">Version {v.version} — PDF</a>
+                <span>Figée le {v.dateGel}{v.geleePar ? ' par ' + v.geleePar : ''}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {pieces && (
+        <Pieces titre="Cadre légal" module="Pacte" ligneId="" categorie="Cadre légal" membre={membre}
+          fichiers={piecesPacte} onClose={()=>setPieces(false)}
+          onUpload={onUpload} onDelete={onDeleteFile} />
+      )}
+    </>
+  );
+}
+
 /* ============================================================
    APPLICATION
    ============================================================ */
@@ -685,6 +1077,8 @@ function App(){
   const [nomBateau, setNomBateau] = useState('');
   const [active, setActive] = useState('bord');
   const [toast, setToast] = useState(null);
+  const [membre, setMembre] = useState('');
+  const [version, setVersion] = useState('1');
 
   const say = useCallback((msg, bad) => {
     setToast({msg, bad});
@@ -697,8 +1091,10 @@ function App(){
       const cfg = d.Config || [];
       const p = cfg.find(c=>c.cle==='phase');
       const n = cfg.find(c=>c.cle==='nomBateau') || cfg.find(c=>c.cle==='nomProjet');
+      const ver = cfg.find(c=>c.cle==='pacteVersion');
       if (p) setPhase(p.valeur);
       if (n) setNomBateau(n.valeur || '');
+      if (ver) setVersion(String(ver.valeur || '1'));
     }).catch(e => say(e.message, true));
   }, [say]);
 
@@ -730,6 +1126,44 @@ function App(){
     }).catch(e => say(e.message,true));
   }
 
+  function upload(payload){
+    return server('uploadFichier', payload).then(row => {
+      setData(d => ({...d, Fichiers:[...(d.Fichiers||[]), row]}));
+      say('Fichier déposé'); return row;
+    }).catch(e => { say(e.message, true); throw e; });
+  }
+  function supprimerFichier(id){
+    return server('supprimerFichier', id).then(() => {
+      setData(d => ({...d, Fichiers:(d.Fichiers||[]).filter(f=>f.id!==id)}));
+      say('Fichier supprimé');
+    }).catch(e => say(e.message, true));
+  }
+  function chargerModele(forcer){
+    return server('chargerModelePacte', !!forcer).then(rows => {
+      setData(d => ({...d, Pacte: rows}));
+      say('Trame chargée');
+    }).catch(e => say(e.message, true));
+  }
+  function signer(nom){
+    return server('signerPacte', membre, nom, '').then(row => {
+      setData(d => ({...d, Signatures:[...(d.Signatures||[]), row]}));
+      say('Signature enregistrée');
+    }).catch(e => { say(e.message, true); throw e; });
+  }
+  function designer(id){
+    return server('retirerSignature', id).then(() => {
+      setData(d => ({...d, Signatures:(d.Signatures||[]).filter(x=>x.id!==id)}));
+      say('Signature retirée');
+    }).catch(e => say(e.message, true));
+  }
+  function geler(){
+    return server('gelerPacte', membre).then(row => {
+      setData(d => ({...d, Versions:[...(d.Versions||[]), row]}));
+      setVersion(v => String(Number(v)+1));
+      say('Version archivée dans Drive');
+    }).catch(e => say(e.message, true));
+  }
+
   if (!data) return <div className="boot">Chargement</div>;
 
   const membres = data.Membres || [];
@@ -749,7 +1183,8 @@ function App(){
 
   return (
     <>
-      <Hero phase={phase} onPhase={changePhase} nomBateau={nomBateau} onRename={rename} info={info} stats={stats} />
+      <Hero phase={phase} onPhase={changePhase} nomBateau={nomBateau} onRename={rename} info={info} stats={stats}
+        membres={membres} membre={membre} onMembre={setMembre} />
       <Tabs phase={phase} active={active} onSelect={setActive} counts={counts} />
       {!hasGAS && !hasURL && (
         <div className="banner"><div className="banner-in">
@@ -759,9 +1194,22 @@ function App(){
       <main>
         {mod.key === 'bord' && <Bord data={data} phase={phase} onGo={setActive} />}
         {mod.key === 'identite' && <Identite rows={data.BateauInfo||[]} onAdd={add} onUpdate={update} />}
-        {mod.sheet && mod.key !== 'identite' && (
+        {mod.key === 'documents' && (
+          <Coffre fichiers={data.Fichiers||[]} membre={membre}
+            onUpload={upload} onDelete={supprimerFichier} />
+        )}
+        {mod.key === 'pacte' && (
+          <Pacte articles={data.Pacte||[]} signatures={data.Signatures||[]} versions={data.Versions||[]}
+            membres={membres} membre={membre} version={version} fichiers={data.Fichiers||[]}
+            onAdd={add} onUpdate={update} onDelete={remove} onModele={chargerModele}
+            onSigner={signer} onDesigner={designer} onGeler={geler}
+            onUpload={upload} onDeleteFile={supprimerFichier} />
+        )}
+        {mod.sheet && !mod.special && (
           <ModuleView mod={mod} rows={data[mod.sheet]||[]} membres={membres}
-            onAdd={add} onUpdate={update} onDelete={remove} />
+            fichiers={data.Fichiers||[]} membre={membre}
+            onAdd={add} onUpdate={update} onDelete={remove}
+            onUpload={upload} onDeleteFile={supprimerFichier} />
         )}
       </main>
       {toast && <div className={'toast' + (toast.bad ? ' bad' : '')}>{toast.msg}</div>}
