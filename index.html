@@ -414,6 +414,76 @@ td.num{font-family:var(--data);font-weight:500;font-variant-numeric:tabular-nums
   .boot-meta{margin-top:24px;}
 }
 
+
+/* ============================================================
+   PLAN DE FINANCEMENT
+   ============================================================ */
+.plan-bloc{padding:18px 20px;}
+.plan-bloc .eyebrow{color:var(--steel);display:block;margin-bottom:14px;}
+
+/* Enchaînement de sommes : apports − acquisition = fonds */
+.flux{border-top:1px solid var(--line);}
+.flux-l{
+  display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  padding:11px 0;border-bottom:1px solid #EDF2F4;font-size:13.5px;
+}
+.flux-l:last-child{border-bottom:none;}
+.flux-l span{color:var(--ink);}
+.flux-l span i{
+  display:block;font-style:normal;font-family:var(--data);font-size:10px;
+  color:var(--steel);margin-top:2px;
+}
+.flux-l b{font-size:14.5px;white-space:nowrap;}
+.flux-l.neg b{color:var(--steel);}
+.flux-l.total{
+  border-top:1.5px solid var(--abyss);border-bottom:none;margin-top:2px;padding-top:13px;
+}
+.flux-l.total span{font-weight:600;}
+.flux-l.total b{font-size:19px;color:var(--abyss);}
+.flux-l.total.alerte b{color:var(--flare);}
+
+.plan-phrase{
+  font-size:14.5px;line-height:1.65;color:var(--ink);
+  padding:14px 16px;background:#F4F9FA;border:1px solid var(--line);border-radius:10px;
+}
+.plan-phrase b{font-weight:600;}
+.plan-phrase b.data{color:var(--abyss);}
+
+.plan-ctrl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+
+.cotis{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;
+  padding:16px 18px;background:var(--abyss);border-radius:11px;
+}
+.cotis .eyebrow{display:block;color:rgba(255,255,255,.5)!important;margin-bottom:7px;}
+.cotis strong{
+  display:block;font-family:var(--data);font-weight:500;font-size:21px;
+  color:#DCE9EE;font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+}
+.cotis strong.accent{color:var(--signal);}
+
+table.repart{margin-top:16px;border-top:1px solid var(--line);}
+table.repart th{padding:10px 10px 10px 0;}
+table.repart td{padding:10px 10px 10px 0;font-size:13.5px;}
+table.repart td.num{text-align:right;font-family:var(--data);font-weight:500;font-variant-numeric:tabular-nums;}
+table.repart th:not(:first-child){text-align:right;}
+table.repart td.accent{color:var(--signal-ink);font-weight:500;}
+td i.sous{
+  display:block;font-style:normal;font-family:var(--data);font-size:10px;
+  color:var(--steel);margin-top:2px;
+}
+
+.plan-note{
+  margin:14px 0 0;font-size:12.5px;line-height:1.6;color:var(--steel);
+}
+.plan-note.alerte{color:var(--flare);}
+
+@media (max-width:760px){
+  .plan-ctrl,.cotis{grid-template-columns:1fr;}
+  .plan-bloc{padding:16px;}
+  .cotis{gap:16px;}
+}
+
 /* ============================================================
    MOBILE
    ============================================================ */
@@ -743,6 +813,24 @@ const {
   useEffect,
   useCallback
 } = React;
+const NATURES = ['Acquisition', 'Récurrent'];
+
+/* Dépenses payées une seule fois, couvertes par les apports. */
+const CAT_ACQUISITION = ["Prix d'achat", 'Francisation & immatriculation', 'Expertise / visite technique', 'Frais de courtage', 'Convoyage', 'Équipement initial', 'Travaux de remise en état', 'Frais de dossier', 'Autre (ponctuel)'];
+
+/* Dépenses qui reviennent : c'est elles qui déterminent la cotisation. */
+const CAT_RECURRENT = ['Place au port', 'Électricité quai', 'Eau', 'Assurance', 'Carénage & antifouling', 'Entretien moteur', 'Voiles & gréement', 'Électronique', 'Sécurité / armement', 'Taxe de francisation (DAFN)', 'Hivernage', "Mise à l'eau / sortie d'eau", 'Consommables', 'Provision imprévus', 'Autre (récurrent)'];
+const PERIODES = ['Mensuel', 'Trimestriel', 'Semestriel', 'Annuel', 'Tous les 2 ans', 'Tous les 5 ans'];
+
+/* Nombre d'occurrences par an, pour ramener tout à un coût annuel. */
+const PAR_AN = {
+  'Mensuel': 12,
+  'Trimestriel': 4,
+  'Semestriel': 2,
+  'Annuel': 1,
+  'Tous les 2 ans': 0.5,
+  'Tous les 5 ans': 0.2
+};
 
 /* ============================================================
    CONFIGURATION DES MODULES
@@ -798,17 +886,28 @@ const MODULES = [{
   label: 'Budget',
   phase: 'avant',
   drive: 'Devis',
-  empty: "Chiffrez le projet complet : prix d'achat, place au port, assurance, entretien. L'écart entre estimé et réel se calcule tout seul.",
+  empty: "Deux natures de dépense. L'acquisition, payée une fois avec les apports : prix du bateau, francisation, expertise. Et le fonctionnement, qui revient chaque année : port, assurance, carénage, eau, électricité. C'est cette distinction qui permet de savoir combien de temps tient le fonds et combien chacun doit verser par mois.",
   fields: [{
+    key: 'nature',
+    label: 'Nature',
+    type: 'select',
+    options: NATURES,
+    required: true
+  }, {
     key: 'categorie',
     label: 'Catégorie',
     type: 'select',
-    options: ['Achat', 'Taxes & immatriculation', 'Assurance', 'Entretien annuel', 'Place au port', 'Équipement', 'Convoyage', 'Autre']
+    optionsDe: f => f.nature === 'Acquisition' ? CAT_ACQUISITION : CAT_RECURRENT
   }, {
     key: 'libelle',
     label: 'Libellé',
     type: 'text',
     required: true
+  }, {
+    key: 'periodicite',
+    label: 'Périodicité',
+    type: 'select',
+    optionsDe: f => f.nature === 'Acquisition' ? ['Ponctuel'] : PERIODES
   }, {
     key: 'montantEstime',
     label: 'Montant estimé (€)',
@@ -822,8 +921,8 @@ const MODULES = [{
     label: 'Notes',
     type: 'textarea'
   }],
-  columns: ['categorie', 'libelle', 'montantEstime', 'montantReel'],
-  hideFrom: 3
+  columns: ['nature', 'categorie', 'libelle', 'periodicite', 'montantEstime', 'montantReel'],
+  hideFrom: 2
 }, {
   key: 'visites',
   sheet: 'Visites',
@@ -1181,7 +1280,7 @@ const API_TOKEN = 'bateau-a-changer-2026';
 /* Repère de build : visible sur l'écran de chargement.
    Sert à vérifier d'un coup d'œil que le navigateur a bien la dernière
    version du fichier et non une copie en cache. */
-const BUILD = 'b9';
+const BUILD = 'b10';
 
 /* google.script.run est injecté par Apps Script APRÈS le chargement du script.
    On teste donc au moment de l'appel, pas au chargement — sinon on croit à tort
@@ -1283,6 +1382,240 @@ async function httpCall(fn, args) {
   if (!json.ok) throw new Error(json.error || 'Erreur inconnue.');
   if (json.data === null || json.data === undefined) throw new Error(VIDE);
   return json.data;
+}
+
+/* ---------- Voie 3 : démonstration ----------
+   Sert quand aucun backend n'est joignable : ouvrir le fichier en local
+   permet de parcourir l'interface. Rien n'est enregistré. */
+const DEMO = {
+  Config: [{
+    id: 'c1',
+    cle: 'phase',
+    valeur: 'avant'
+  }, {
+    id: 'c2',
+    cle: 'nomBateau',
+    valeur: ''
+  }, {
+    id: 'c3',
+    cle: 'pacteVersion',
+    valeur: '1'
+  }, {
+    id: 'c4',
+    cle: 'horizonAns',
+    valeur: '5'
+  }, {
+    id: 'c5',
+    cle: 'repartition',
+    valeur: 'Egale'
+  }],
+  Membres: [{
+    id: 'm1',
+    nom: 'Jeff'
+  }, {
+    id: 'm2',
+    nom: 'Marc'
+  }, {
+    id: 'm3',
+    nom: 'Antoine'
+  }],
+  Souhaits: [{
+    id: 's1',
+    titre: 'Voilier habitable 10-12 m',
+    categorie: 'Type de bateau',
+    priorite: 'Indispensable',
+    auteur: 'Jeff',
+    statut: 'Validé',
+    notes: ''
+  }, {
+    id: 's2',
+    titre: 'Moteur inboard sous 2000 h',
+    categorie: 'Équipement',
+    priorite: 'Souhaité',
+    auteur: 'Marc',
+    statut: 'Ouvert',
+    notes: ''
+  }],
+  Budget: [{
+    id: 'b1',
+    nature: 'Acquisition',
+    categorie: "Prix d'achat",
+    libelle: "Prix d'achat négocié",
+    periodicite: 'Ponctuel',
+    montantEstime: 62000,
+    montantReel: 58000,
+    notes: ''
+  }, {
+    id: 'b2',
+    nature: 'Acquisition',
+    categorie: 'Francisation & immatriculation',
+    libelle: 'Francisation et mutation',
+    periodicite: 'Ponctuel',
+    montantEstime: 900,
+    montantReel: '',
+    notes: ''
+  }, {
+    id: 'b3',
+    nature: 'Acquisition',
+    categorie: 'Expertise / visite technique',
+    libelle: 'Expertise avant achat',
+    periodicite: 'Ponctuel',
+    montantEstime: 750,
+    montantReel: 820,
+    notes: ''
+  }, {
+    id: 'b4',
+    nature: 'Récurrent',
+    categorie: 'Place au port',
+    libelle: 'Anneau annuel',
+    periodicite: 'Annuel',
+    montantEstime: 3200,
+    montantReel: '',
+    notes: ''
+  }, {
+    id: 'b5',
+    nature: 'Récurrent',
+    categorie: 'Assurance',
+    libelle: 'Prime tous risques',
+    periodicite: 'Annuel',
+    montantEstime: 900,
+    montantReel: '',
+    notes: ''
+  }, {
+    id: 'b6',
+    nature: 'Récurrent',
+    categorie: 'Électricité quai',
+    libelle: 'Électricité ponton',
+    periodicite: 'Mensuel',
+    montantEstime: 25,
+    montantReel: '',
+    notes: ''
+  }, {
+    id: 'b7',
+    nature: 'Récurrent',
+    categorie: 'Eau',
+    libelle: 'Eau ponton',
+    periodicite: 'Trimestriel',
+    montantEstime: 30,
+    montantReel: '',
+    notes: ''
+  }, {
+    id: 'b8',
+    nature: 'Récurrent',
+    categorie: 'Carénage & antifouling',
+    libelle: 'Carénage complet',
+    periodicite: 'Tous les 2 ans',
+    montantEstime: 1600,
+    montantReel: '',
+    notes: ''
+  }, {
+    id: 'b9',
+    nature: 'Récurrent',
+    categorie: 'Provision imprévus',
+    libelle: 'Provision panne',
+    periodicite: 'Annuel',
+    montantEstime: 800,
+    montantReel: '',
+    notes: ''
+  }],
+  Visites: [{
+    id: 'v1',
+    dateVisite: '2026-06-28',
+    nomBateau: 'Océanis 34',
+    modele: 'Bénéteau',
+    annee: 2011,
+    lieu: 'La Rochelle',
+    prixDemande: 62000,
+    prixPropose: 58000,
+    note: '5',
+    decision: 'Favori',
+    participants: 'Jeff, Marc, Antoine',
+    pointsPositifs: 'Bon état général',
+    pointsNegatifs: 'Électronique à reprendre',
+    notes: ''
+  }],
+  Copropriete: [{
+    id: 'p1',
+    membre: 'Jeff',
+    montant: 25000,
+    datePaiement: '2026-07-01',
+    type: 'Apport initial',
+    notes: ''
+  }, {
+    id: 'p2',
+    membre: 'Marc',
+    montant: 20000,
+    datePaiement: '2026-07-01',
+    type: 'Apport initial',
+    notes: ''
+  }, {
+    id: 'p3',
+    membre: 'Antoine',
+    montant: 15000,
+    datePaiement: '2026-07-03',
+    type: 'Apport initial',
+    notes: ''
+  }],
+  BateauInfo: [],
+  Entretien: [],
+  Manutention: [],
+  Planning: [],
+  Depenses: [],
+  Documents: [],
+  Fichiers: [],
+  Pacte: [],
+  Signatures: [],
+  Versions: []
+};
+function rid() {
+  return 'x' + Math.random().toString(36).slice(2, 8);
+}
+function demoCall(fn, a) {
+  return new Promise(res => setTimeout(() => {
+    if (fn === 'getAllData') return res(DEMO);
+    if (fn === 'addRow') {
+      const row = Object.assign({}, a[1], {
+        id: rid()
+      });
+      DEMO[a[0]] = [...(DEMO[a[0]] || []), row];
+      return res(row);
+    }
+    if (fn === 'updateRow') {
+      let o = null;
+      DEMO[a[0]] = (DEMO[a[0]] || []).map(r => r.id !== a[1] ? r : o = Object.assign({}, r, a[2]));
+      return res(o);
+    }
+    if (fn === 'deleteRow') {
+      DEMO[a[0]] = (DEMO[a[0]] || []).filter(r => r.id !== a[1]);
+      return res({
+        id: a[1]
+      });
+    }
+    if (fn === 'setConfig') {
+      const ex = DEMO.Config.find(c => c.cle === a[0]);
+      if (ex) DEMO.Config = DEMO.Config.map(c => c.cle === a[0] ? {
+        ...c,
+        valeur: a[1]
+      } : c);else DEMO.Config = [...DEMO.Config, {
+        id: rid(),
+        cle: a[0],
+        valeur: a[1]
+      }];
+      return res(a[1]);
+    }
+    if (fn === 'classerBudget') {
+      DEMO.Budget = DEMO.Budget.map(l => l.nature ? l : {
+        ...l,
+        nature: 'Récurrent',
+        periodicite: 'Annuel'
+      });
+      return res({
+        classees: 0,
+        lignes: DEMO.Budget
+      });
+    }
+    res(null);
+  }, 110));
 }
 
 /* ---------- Aiguillage ----------
@@ -1713,9 +2046,10 @@ function Field({
   f,
   value,
   onChange,
-  membres
+  membres,
+  form
 }) {
-  const opts = f.optionsFrom === 'membres' ? membres.map(m => m.nom) : f.options || [];
+  const opts = f.optionsDe ? f.optionsDe(form || {}) : f.optionsFrom === 'membres' ? membres.map(m => m.nom) : f.options || [];
   if (f.type === 'textarea') return /*#__PURE__*/React.createElement("textarea", {
     value: value || '',
     onChange: e => onChange(e.target.value)
@@ -1773,6 +2107,7 @@ function Sheet({
     f: f,
     value: form[f.key],
     membres: membres,
+    form: form,
     onChange: v => setForm(s => ({
       ...s,
       [f.key]: v
@@ -1815,6 +2150,7 @@ function ModuleView({
   membres,
   fichiers,
   membre,
+  extra,
   onAdd,
   onUpdate,
   onDelete,
@@ -1840,9 +2176,7 @@ function ModuleView({
       setEditing(null);
       setOpen(true);
     }
-  }, "Ajouter")), mod.key === 'budget' && /*#__PURE__*/React.createElement(BudgetGauges, {
-    rows: rows
-  }), mod.key === 'parts' && /*#__PURE__*/React.createElement(Shares, {
+  }, "Ajouter")), mod.key === 'budget' && extra, mod.key === 'parts' && /*#__PURE__*/React.createElement(Shares, {
     rows: rows
   }), /*#__PURE__*/React.createElement("div", {
     className: "card"
@@ -1949,6 +2283,242 @@ function BudgetGauges({
     value: euros(reel - est),
     tone: over ? 'alert' : 'mute'
   }));
+}
+
+/* ============================================================
+   PLAN DE FINANCEMENT
+   Enchaînement : apports → coût d'acquisition → fonds restant,
+   puis coût annuel de fonctionnement → autonomie du fonds
+   → cotisation nécessaire par associé.
+   ============================================================ */
+
+/* Montant retenu : le réel dès qu'il est saisi, sinon l'estimation. */
+function montantRetenu(l) {
+  const reel = Number(l.montantReel);
+  if (l.montantReel !== '' && l.montantReel != null && !isNaN(reel) && reel !== 0) return reel;
+  const est = Number(l.montantEstime);
+  return isNaN(est) ? 0 : est;
+}
+function coutAnnuel(l) {
+  return montantRetenu(l) * (PAR_AN[l.periodicite] || 1);
+}
+function dureeLisible(annees) {
+  if (!isFinite(annees)) return 'illimitée';
+  const total = Math.floor(annees * 12);
+  const a = Math.floor(total / 12),
+    m = total % 12;
+  if (a === 0) return m + ' mois';
+  if (m === 0) return a + (a > 1 ? ' ans' : ' an');
+  return a + (a > 1 ? ' ans' : ' an') + ' et ' + m + ' mois';
+}
+function PlanFinancement({
+  lignes,
+  apports,
+  membres,
+  horizon,
+  repartition,
+  onHorizon,
+  onRepartition,
+  onClasser
+}) {
+  const [occupe, setOccupe] = useState(false);
+  const nonClassees = lignes.filter(l => !l.nature);
+  const acquisition = lignes.filter(l => l.nature === 'Acquisition');
+  const recurrent = lignes.filter(l => l.nature === 'Récurrent');
+  const totalApports = apports.filter(a => a.type !== 'Remboursement').reduce((s, a) => s + (Number(a.montant) || 0), 0);
+  const totalAcquisition = acquisition.reduce((s, l) => s + montantRetenu(l), 0);
+  const fonds = totalApports - totalAcquisition;
+  const annuel = recurrent.reduce((s, l) => s + coutAnnuel(l), 0);
+  const mensuel = annuel / 12;
+  const autonomie = annuel > 0 ? Math.max(0, fonds) / annuel : Infinity;
+
+  // Combien il reste à financer pour tenir l'horizon choisi.
+  const ans = Math.max(1, Number(horizon) || 5);
+  const besoin = annuel * ans;
+  const aFinancer = Math.max(0, besoin - Math.max(0, fonds));
+  const cotisationMois = aFinancer / (ans * 12);
+
+  // Répartition entre associés : parts réelles ou division égale.
+  const parts = {};
+  apports.filter(a => a.type !== 'Remboursement').forEach(a => {
+    parts[a.membre] = (parts[a.membre] || 0) + (Number(a.montant) || 0);
+  });
+  const sommeParts = Object.values(parts).reduce((x, y) => x + y, 0);
+  const auProrata = repartition === 'Parts' && sommeParts > 0;
+  const repartir = total => membres.map(m => {
+    const quote = auProrata ? (parts[m.nom] || 0) / sommeParts : membres.length ? 1 / membres.length : 0;
+    return {
+      nom: m.nom,
+      pct: quote * 100,
+      montant: total * quote
+    };
+  });
+  const detail = repartir(annuel);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "plan"
+  }, nonClassees.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "avis",
+    style: {
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, nonClassees.length, " ligne", nonClassees.length > 1 ? 's' : '', " sans nature."), " Elles ne sont compt\xE9es nulle part tant qu'on ne sait pas si c'est une d\xE9pense d'acquisition ou un frais qui revient. Le classement automatique se base sur la cat\xE9gorie \u2014 relisez-le ensuite.", /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    disabled: occupe,
+    onClick: () => {
+      setOccupe(true);
+      onClasser().finally(() => setOccupe(false));
+    }
+  }, occupe ? 'Classement…' : 'Classer automatiquement'))), /*#__PURE__*/React.createElement("div", {
+    className: "card plan-bloc"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "Tr\xE9sorerie de d\xE9part"), /*#__PURE__*/React.createElement("div", {
+    className: "flux"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flux-l"
+  }, /*#__PURE__*/React.createElement("span", null, "Apports des associ\xE9s"), /*#__PURE__*/React.createElement("b", {
+    className: "data"
+  }, euros(totalApports))), /*#__PURE__*/React.createElement("div", {
+    className: "flux-l neg"
+  }, /*#__PURE__*/React.createElement("span", null, "Co\xFBt d'acquisition", /*#__PURE__*/React.createElement("i", null, acquisition.length, " ligne", acquisition.length > 1 ? 's' : '')), /*#__PURE__*/React.createElement("b", {
+    className: "data"
+  }, "\u2212 ", euros(totalAcquisition))), /*#__PURE__*/React.createElement("div", {
+    className: 'flux-l total' + (fonds < 0 ? ' alerte' : '')
+  }, /*#__PURE__*/React.createElement("span", null, fonds < 0 ? 'Manque à trouver' : 'Fonds disponible après achat'), /*#__PURE__*/React.createElement("b", {
+    className: "data"
+  }, euros(Math.abs(fonds))))), fonds < 0 && /*#__PURE__*/React.createElement("p", {
+    className: "plan-note alerte"
+  }, "Les apports ne couvrent pas l'acquisition. Il manque ", euros(-fonds), " avant m\xEAme de parler de frais de fonctionnement.")), /*#__PURE__*/React.createElement("div", {
+    className: "readouts",
+    style: {
+      marginTop: 14,
+      marginBottom: 0
+    }
+  }, /*#__PURE__*/React.createElement(Readout, {
+    label: "Co\xFBt annuel",
+    value: euros(annuel)
+  }), /*#__PURE__*/React.createElement(Readout, {
+    label: "Par mois",
+    value: euros(mensuel),
+    tone: "mute"
+  }), /*#__PURE__*/React.createElement(Readout, {
+    label: "Par associ\xE9 / an",
+    value: euros(membres.length ? annuel / membres.length : 0),
+    tone: "mute"
+  }), /*#__PURE__*/React.createElement(Readout, {
+    label: "Par associ\xE9 / mois",
+    value: euros(membres.length ? mensuel / membres.length : 0)
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card plan-bloc",
+    style: {
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "Autonomie du fonds et cotisation"), annuel === 0 ? /*#__PURE__*/React.createElement("p", {
+    className: "plan-note"
+  }, "Ajoutez les frais r\xE9currents \u2014 place au port, assurance, car\xE9nage, eau, \xE9lectricit\xE9 \u2014 pour que le calcul ait un sens.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "plan-phrase"
+  }, "Sans rien verser, le fonds de ", /*#__PURE__*/React.createElement("b", {
+    className: "data"
+  }, euros(Math.max(0, fonds))), " couvre le fonctionnement pendant ", /*#__PURE__*/React.createElement("b", null, dureeLisible(autonomie)), "."), /*#__PURE__*/React.createElement("div", {
+    className: "plan-ctrl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "field",
+    style: {
+      margin: 0
+    }
+  }, /*#__PURE__*/React.createElement("label", null, "Tenir combien d'ann\xE9es"), /*#__PURE__*/React.createElement("select", {
+    value: ans,
+    onChange: e => onHorizon(e.target.value)
+  }, [1, 2, 3, 5, 7, 10, 15, 20].map(n => /*#__PURE__*/React.createElement("option", {
+    key: n,
+    value: n
+  }, n, " an", n > 1 ? 's' : '')))), /*#__PURE__*/React.createElement("div", {
+    className: "field",
+    style: {
+      margin: 0
+    }
+  }, /*#__PURE__*/React.createElement("label", null, "R\xE9partition entre associ\xE9s"), /*#__PURE__*/React.createElement("select", {
+    value: repartition,
+    onChange: e => onRepartition(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "Egale"
+  }, "Parts \xE9gales"), /*#__PURE__*/React.createElement("option", {
+    value: "Parts"
+  }, "Au prorata des apports")))), /*#__PURE__*/React.createElement("div", {
+    className: "flux",
+    style: {
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flux-l"
+  }, /*#__PURE__*/React.createElement("span", null, "Besoin sur ", ans, " an", ans > 1 ? 's' : ''), /*#__PURE__*/React.createElement("b", {
+    className: "data"
+  }, euros(besoin))), /*#__PURE__*/React.createElement("div", {
+    className: "flux-l neg"
+  }, /*#__PURE__*/React.createElement("span", null, "Couvert par le fonds"), /*#__PURE__*/React.createElement("b", {
+    className: "data"
+  }, "\u2212 ", euros(Math.min(besoin, Math.max(0, fonds))))), /*#__PURE__*/React.createElement("div", {
+    className: "flux-l total"
+  }, /*#__PURE__*/React.createElement("span", null, "Reste \xE0 financer"), /*#__PURE__*/React.createElement("b", {
+    className: "data"
+  }, euros(aFinancer)))), /*#__PURE__*/React.createElement("div", {
+    className: "cotis"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow",
+    style: {
+      color: 'var(--steel)'
+    }
+  }, "Cotisation mensuelle, tous associ\xE9s"), /*#__PURE__*/React.createElement("strong", {
+    className: "data"
+  }, euros(cotisationMois))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow",
+    style: {
+      color: 'var(--steel)'
+    }
+  }, "Par associ\xE9 et par mois"), /*#__PURE__*/React.createElement("strong", {
+    className: "data accent"
+  }, euros(membres.length ? cotisationMois / membres.length : 0)))), membres.length > 0 && /*#__PURE__*/React.createElement("table", {
+    className: "repart"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Associ\xE9"), auProrata && /*#__PURE__*/React.createElement("th", null, "Part"), /*#__PURE__*/React.createElement("th", null, "Frais / an"), /*#__PURE__*/React.createElement("th", null, "Frais / mois"), /*#__PURE__*/React.createElement("th", null, "Cotisation / mois"))), /*#__PURE__*/React.createElement("tbody", null, detail.map(d => /*#__PURE__*/React.createElement("tr", {
+    key: d.nom
+  }, /*#__PURE__*/React.createElement("td", null, d.nom), auProrata && /*#__PURE__*/React.createElement("td", {
+    className: "num"
+  }, d.pct.toFixed(1), " %"), /*#__PURE__*/React.createElement("td", {
+    className: "num"
+  }, euros(d.montant)), /*#__PURE__*/React.createElement("td", {
+    className: "num"
+  }, euros(d.montant / 12)), /*#__PURE__*/React.createElement("td", {
+    className: "num accent"
+  }, euros(aFinancer * (d.montant / annuel || 0) / (ans * 12))))))), /*#__PURE__*/React.createElement("p", {
+    className: "plan-note"
+  }, "Calcul sur les montants r\xE9els d\xE8s qu'ils sont saisis, sinon sur les estimations. Le car\xE9nage tous les deux ans est liss\xE9 sur l'ann\xE9e, comme le reste."))), recurrent.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card plan-bloc",
+    style: {
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "D\xE9tail annuel des frais r\xE9currents"), /*#__PURE__*/React.createElement("table", {
+    className: "repart"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Poste"), /*#__PURE__*/React.createElement("th", {
+    className: "hide-s"
+  }, "P\xE9riodicit\xE9"), /*#__PURE__*/React.createElement("th", null, "Montant"), /*#__PURE__*/React.createElement("th", null, "Par an"))), /*#__PURE__*/React.createElement("tbody", null, [...recurrent].sort((a, b) => coutAnnuel(b) - coutAnnuel(a)).map(l => /*#__PURE__*/React.createElement("tr", {
+    key: l.id
+  }, /*#__PURE__*/React.createElement("td", null, l.libelle, /*#__PURE__*/React.createElement("i", {
+    className: "sous"
+  }, l.categorie)), /*#__PURE__*/React.createElement("td", {
+    className: "hide-s"
+  }, l.periodicite || '—'), /*#__PURE__*/React.createElement("td", {
+    className: "num"
+  }, euros(montantRetenu(l))), /*#__PURE__*/React.createElement("td", {
+    className: "num accent"
+  }, euros(coutAnnuel(l)))))))));
 }
 function Shares({
   rows
@@ -2557,6 +3127,8 @@ function App() {
   const [toast, setToast] = useState(null);
   const [membre, setMembre] = useState('');
   const [version, setVersion] = useState('1');
+  const [horizon, setHorizon] = useState('5');
+  const [repartition, setRepartition] = useState('Egale');
   const [panne, setPanne] = useState(null);
   const [essai, setEssai] = useState(0);
   const [voile, setVoile] = useState(true);
@@ -2579,6 +3151,10 @@ function App() {
       const p = cfg.find(c => c.cle === 'phase');
       const n = cfg.find(c => c.cle === 'nomBateau') || cfg.find(c => c.cle === 'nomProjet');
       const ver = cfg.find(c => c.cle === 'pacteVersion');
+      const hz = cfg.find(c => c.cle === 'horizonAns');
+      const rp = cfg.find(c => c.cle === 'repartition');
+      if (hz) setHorizon(String(hz.valeur || '5'));
+      if (rp) setRepartition(String(rp.valeur || 'Egale'));
       if (p) setPhase(p.valeur);
       if (n) setNomBateau(n.valeur || '');
       if (ver) setVersion(String(ver.valeur || '1'));
@@ -2687,6 +3263,23 @@ function App() {
       say('Signature retirée');
     }).catch(e => say(e.message, true));
   }
+  function majHorizon(v) {
+    setHorizon(v);
+    server('setConfig', 'horizonAns', String(v)).catch(e => say(e.message, true));
+  }
+  function majRepartition(v) {
+    setRepartition(v);
+    server('setConfig', 'repartition', v).catch(e => say(e.message, true));
+  }
+  function classerBudget() {
+    return server('classerBudget').then(r => {
+      setData(d => ({
+        ...d,
+        Budget: r.lignes
+      }));
+      say(r.classees + ' ligne' + (r.classees > 1 ? 's' : '') + ' classée' + (r.classees > 1 ? 's' : ''));
+    }).catch(e => say(e.message, true));
+  }
   function geler() {
     return server('gelerPacte', membre).then(row => {
       setData(d => ({
@@ -2781,6 +3374,16 @@ function App() {
     membres: membres,
     fichiers: data.Fichiers || [],
     membre: membre,
+    extra: mod.key === 'budget' ? /*#__PURE__*/React.createElement(PlanFinancement, {
+      lignes: data.Budget || [],
+      apports: data.Copropriete || [],
+      membres: membres,
+      horizon: horizon,
+      repartition: repartition,
+      onHorizon: majHorizon,
+      onRepartition: majRepartition,
+      onClasser: classerBudget
+    }) : null,
     onAdd: add,
     onUpdate: update,
     onDelete: remove,
