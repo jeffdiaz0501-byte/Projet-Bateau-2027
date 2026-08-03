@@ -396,6 +396,10 @@ td.num{font-family:var(--data);font-weight:500;font-variant-numeric:tabular-nums
 }
 .boot-status b{color:var(--signal);font-weight:500;}
 
+.boot-build{
+  margin:16px 0 0;font-family:var(--data);font-size:9px;letter-spacing:.2em;
+  color:rgba(255,255,255,.22);
+}
 .boot-fail{max-width:390px;}
 .boot-fail p{color:#C3D4DC;font-size:13.5px;line-height:1.6;margin:0 0 6px;}
 .boot-fail .why{
@@ -1174,186 +1178,80 @@ const API_TOKEN = 'bateau-a-changer-2026';
      2. GAS_URL renseignée           -> fetch (GitHub Pages)
      3. ni l'un ni l'autre           -> données de démonstration
    ============================================================ */
-const hasGAS = typeof google !== 'undefined' && google.script && google.script.run;
-const hasURL = /^https:\/\/script\.google\.com\/.+\/exec$/.test(GAS_URL);
-const DEMO = {
-  Config: [{
-    id: 'c1',
-    cle: 'phase',
-    valeur: 'avant'
-  }, {
-    id: 'c2',
-    cle: 'nomBateau',
-    valeur: ''
-  }],
-  Membres: [{
-    id: 'm1',
-    nom: 'Jeff'
-  }, {
-    id: 'm2',
-    nom: 'Marc'
-  }, {
-    id: 'm3',
-    nom: 'Antoine'
-  }],
-  Souhaits: [{
-    id: 's1',
-    titre: 'Voilier habitable 10-12 m',
-    categorie: 'Type de bateau',
-    priorite: 'Indispensable',
-    auteur: 'Jeff',
-    statut: 'Validé',
-    notes: ''
-  }, {
-    id: 's2',
-    titre: 'Moteur inboard sous 2000 h',
-    categorie: 'Équipement',
-    priorite: 'Souhaité',
-    auteur: 'Marc',
-    statut: 'Ouvert',
-    notes: ''
-  }, {
-    id: 's3',
-    titre: 'Annexe et hors-bord',
-    categorie: 'Équipement',
-    priorite: 'Bonus',
-    auteur: 'Antoine',
-    statut: 'Ouvert',
-    notes: ''
-  }],
-  Budget: [{
-    id: 'b1',
-    categorie: 'Achat',
-    libelle: "Prix d'achat cible",
-    montantEstime: 65000,
-    montantReel: '',
-    notes: ''
-  }, {
-    id: 'b2',
-    categorie: 'Place au port',
-    libelle: 'Anneau annuel',
-    montantEstime: 3200,
-    montantReel: '',
-    notes: ''
-  }, {
-    id: 'b3',
-    categorie: 'Assurance',
-    libelle: 'Prime annuelle',
-    montantEstime: 900,
-    montantReel: '',
-    notes: ''
-  }, {
-    id: 'b4',
-    categorie: 'Entretien annuel',
-    libelle: 'Carénage et antifouling',
-    montantEstime: 1400,
-    montantReel: '',
-    notes: ''
-  }],
-  Visites: [{
-    id: 'v1',
-    dateVisite: '2026-06-14',
-    nomBateau: 'Sun Odyssey 349',
-    modele: 'Jeanneau',
-    annee: 2016,
-    lieu: "Les Sables-d'Olonne",
-    prixDemande: 78000,
-    note: '4',
-    decision: 'À revoir',
-    participants: 'Jeff, Marc',
-    pointsPositifs: 'Voiles récentes',
-    pointsNegatifs: 'Au-dessus du budget',
-    notes: ''
-  }, {
-    id: 'v2',
-    dateVisite: '2026-06-28',
-    nomBateau: 'Océanis 34',
-    modele: 'Bénéteau',
-    annee: 2011,
-    lieu: 'La Rochelle',
-    prixDemande: 62000,
-    prixPropose: 58000,
-    note: '5',
-    decision: 'Favori',
-    participants: 'Jeff, Marc, Antoine',
-    pointsPositifs: 'Bon état général',
-    pointsNegatifs: 'Électronique à reprendre',
-    notes: ''
-  }],
-  Copropriete: [{
-    id: 'p1',
-    membre: 'Jeff',
-    montant: 25000,
-    datePaiement: '2026-07-01',
-    type: 'Apport initial',
-    notes: ''
-  }, {
-    id: 'p2',
-    membre: 'Marc',
-    montant: 20000,
-    datePaiement: '2026-07-01',
-    type: 'Apport initial',
-    notes: ''
-  }, {
-    id: 'p3',
-    membre: 'Antoine',
-    montant: 15000,
-    datePaiement: '2026-07-03',
-    type: 'Apport initial',
-    notes: ''
-  }],
-  BateauInfo: [],
-  Entretien: [],
-  Manutention: [],
-  Planning: [],
-  Depenses: [],
-  Documents: [],
-  Fichiers: [],
-  Pacte: [],
-  Signatures: [],
-  Versions: []
-};
-function rid() {
-  return 'x' + Math.random().toString(36).slice(2, 8);
+/* Repère de build : visible sur l'écran de chargement.
+   Sert à vérifier d'un coup d'œil que le navigateur a bien la dernière
+   version du fichier et non une copie en cache. */
+const BUILD = 'b9';
+
+/* google.script.run est injecté par Apps Script APRÈS le chargement du script.
+   On teste donc au moment de l'appel, pas au chargement — sinon on croit à tort
+   que l'objet n'existe pas. */
+function gasDispo() {
+  return typeof google !== 'undefined' && google.script && !!google.script.run;
 }
-function demoCall(fn, a) {
-  return new Promise(res => setTimeout(() => {
-    if (fn === 'getAllData') return res(DEMO);
-    if (fn === 'addRow') {
-      const row = Object.assign({}, a[1], {
-        id: rid()
-      });
-      DEMO[a[0]] = [...(DEMO[a[0]] || []), row];
-      return res(row);
+const hasURL = /^https:\/\/script\.google\.com\/.+\/exec$/.test(GAS_URL);
+
+/* Marque les pannes de transport, par opposition aux erreurs métier
+   renvoyées par le serveur (jeton refusé, ligne introuvable...). */
+function panneReseau(msg) {
+  const e = new Error(msg);
+  e.transport = true;
+  return e;
+}
+const VIDE = "Le serveur a répondu sans données. Lancez initProject dans l'éditeur Apps Script, puis publiez une nouvelle version du déploiement.";
+
+/* ---------- Voie 1 : JSONP ----------
+   Une balise <script> suit les redirections de Google en emportant la session,
+   là où fetch se fait refuser. C'est la voie fiable depuis un autre domaine.
+   Limite : tout passe par l'URL, donc pas d'envoi de fichier par ici. */
+let compteurJsonp = 0;
+function jsonpCall(fn, args) {
+  return new Promise((resolve, reject) => {
+    const cb = '__bateau_cb_' + ++compteurJsonp + '_' + Date.now().toString(36);
+    const url = GAS_URL + '?fn=' + encodeURIComponent(fn) + '&token=' + encodeURIComponent(API_TOKEN) + '&args=' + encodeURIComponent(JSON.stringify(args || [])) + '&callback=' + cb;
+    if (url.length > 7000) {
+      reject(panneReseau('Requête trop longue pour cette voie.'));
+      return;
     }
-    if (fn === 'updateRow') {
-      let o = null;
-      DEMO[a[0]] = (DEMO[a[0]] || []).map(r => r.id !== a[1] ? r : o = Object.assign({}, r, a[2]));
-      return res(o);
-    }
-    if (fn === 'deleteRow') {
-      DEMO[a[0]] = (DEMO[a[0]] || []).filter(r => r.id !== a[1]);
-      return res({
-        id: a[1]
-      });
-    }
-    if (fn === 'setConfig') {
-      const ex = DEMO.Config.find(c => c.cle === a[0]);
-      if (ex) DEMO.Config = DEMO.Config.map(c => c.cle === a[0] ? {
-        ...c,
-        valeur: a[1]
-      } : c);else DEMO.Config = [...DEMO.Config, {
-        id: rid(),
-        cle: a[0],
-        valeur: a[1]
-      }];
-      return res(a[1]);
-    }
-    res(null);
-  }, 110));
+    const balise = document.createElement('script');
+    let clos = false;
+    const ranger = () => {
+      try {
+        delete window[cb];
+      } catch (e) {
+        window[cb] = undefined;
+      }
+      balise.remove();
+    };
+    const minuteur = setTimeout(() => {
+      if (clos) return;
+      clos = true;
+      ranger();
+      reject(panneReseau("Le serveur n'a pas répondu à temps."));
+    }, 30000);
+    window[cb] = r => {
+      if (clos) return;
+      clos = true;
+      clearTimeout(minuteur);
+      ranger();
+      if (!r || !r.ok) return reject(new Error(r && r.error || 'Erreur inconnue.'));
+      if (r.data === null || r.data === undefined) return reject(new Error(VIDE));
+      resolve(r.data);
+    };
+    balise.onerror = () => {
+      if (clos) return;
+      clos = true;
+      clearTimeout(minuteur);
+      ranger();
+      reject(panneReseau('Serveur injoignable.'));
+    };
+    balise.src = url;
+    document.head.appendChild(balise);
+  });
 }
 
-/* Appel HTTP vers le déploiement Apps Script.
+/* ---------- Voie 2 : POST ----------
+   Réservée à l'envoi de fichiers, trop volumineux pour une URL.
    Content-Type text/plain volontaire : évite la requête preflight OPTIONS,
    qu'Apps Script ne sait pas traiter. */
 async function httpCall(fn, args) {
@@ -1372,33 +1270,41 @@ async function httpCall(fn, args) {
       redirect: 'follow'
     });
   } catch (e) {
-    throw new Error("Serveur injoignable. Vérifiez que le déploiement est ouvert à « Tout le monde ».");
+    throw panneReseau("Serveur injoignable. Le déploiement doit être ouvert à « Tout le monde ».");
   }
-  if (!res.ok) throw new Error('Erreur serveur ' + res.status + '.');
+  if (!res.ok) throw panneReseau('Erreur serveur ' + res.status + '.');
   const texte = await res.text();
   let json;
   try {
     json = JSON.parse(texte);
   } catch (e) {
-    throw new Error("Réponse inattendue du serveur. L'URL de déploiement est peut-être périmée.");
+    throw panneReseau("Réponse inattendue. L'URL de déploiement est peut-être périmée.");
   }
   if (!json.ok) throw new Error(json.error || 'Erreur inconnue.');
-  if (json.data === null || json.data === undefined) {
-    throw new Error("Le serveur a répondu sans données. Vérifiez que initProject a bien été exécuté et qu'une nouvelle version du déploiement a été publiée.");
-  }
+  if (json.data === null || json.data === undefined) throw new Error(VIDE);
   return json.data;
 }
+
+/* ---------- Aiguillage ----------
+   1. page servie par Apps Script -> google.script.run (même origine)
+   2. URL renseignée              -> JSONP, et POST pour les fichiers
+   3. ni l'un ni l'autre          -> données de démonstration */
 function server(fn, ...a) {
-  if (hasGAS) {
+  if (gasDispo()) {
     return new Promise((resolve, reject) => {
       google.script.run.withSuccessHandler(r => {
-        if (r === null || r === undefined) {
-          reject(new Error("Le serveur a répondu sans données. Vérifiez que initProject a bien été exécuté et qu'une nouvelle version du déploiement a été publiée."));
-        } else resolve(r);
+        if (r === null || r === undefined) reject(new Error(VIDE));else resolve(r);
       }).withFailureHandler(e => reject(new Error(e.message || String(e))))[fn](...a);
     });
   }
-  if (hasURL) return httpCall(fn, a);
+  if (hasURL) {
+    if (fn === 'uploadFichier') return httpCall(fn, a);
+    // JSONP d'abord ; si le transport échoue, on retente en POST.
+    return jsonpCall(fn, a).catch(e => {
+      if (!e.transport) throw e;
+      return httpCall(fn, a);
+    });
+  }
   return demoCall(fn, a);
 }
 
@@ -1676,7 +1582,9 @@ function Chargement({
     className: "boot-bar"
   }, /*#__PURE__*/React.createElement("span", null)), /*#__PURE__*/React.createElement("p", {
     className: "boot-status"
-  }, flot >= 100 ? /*#__PURE__*/React.createElement("b", null, "Par\xE9") : ETAPES[etape].t)));
+  }, flot >= 100 ? /*#__PURE__*/React.createElement("b", null, "Par\xE9") : ETAPES[etape].t), /*#__PURE__*/React.createElement("p", {
+    className: "boot-build"
+  }, BUILD)));
 }
 
 /* ============================================================
@@ -2833,7 +2741,7 @@ function App() {
     active: active,
     onSelect: setActive,
     counts: counts
-  }), !hasGAS && !hasURL && /*#__PURE__*/React.createElement("div", {
+  }), !hasURL && !gasDispo() && /*#__PURE__*/React.createElement("div", {
     className: "banner"
   }, /*#__PURE__*/React.createElement("div", {
     className: "banner-in"
